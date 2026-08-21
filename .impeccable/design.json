@@ -1,0 +1,135 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-08-21T14:05:37+08:00",
+  "title": "Design System: 打造我的传奇球星全方位攻略",
+  "extensions": {
+    "colorMeta": {
+      "graphite-bg": { "role": "neutral", "displayName": "石墨背景", "canonical": "#080a0e", "tonalRamp": ["color-mix(in oklch, #080a0e 35%, black)", "color-mix(in oklch, #080a0e 55%, black)", "#080a0e", "color-mix(in oklch, #080a0e 75%, white)", "color-mix(in oklch, #080a0e 60%, white)", "color-mix(in oklch, #080a0e 45%, white)", "color-mix(in oklch, #080a0e 25%, white)", "color-mix(in oklch, #080a0e 8%, white)"] },
+      "graphite-panel": { "role": "neutral", "displayName": "石墨面板", "canonical": "#10141b", "tonalRamp": ["color-mix(in oklch, #10141b 35%, black)", "color-mix(in oklch, #10141b 55%, black)", "#10141b", "color-mix(in oklch, #10141b 75%, white)", "color-mix(in oklch, #10141b 60%, white)", "color-mix(in oklch, #10141b 45%, white)", "color-mix(in oklch, #10141b 25%, white)", "color-mix(in oklch, #10141b 8%, white)"] },
+      "graphite-panel-raised": { "role": "neutral", "displayName": "抬升石墨", "canonical": "#151a23", "tonalRamp": ["color-mix(in oklch, #151a23 35%, black)", "color-mix(in oklch, #151a23 55%, black)", "#151a23", "color-mix(in oklch, #151a23 75%, white)", "color-mix(in oklch, #151a23 60%, white)", "color-mix(in oklch, #151a23 45%, white)", "color-mix(in oklch, #151a23 25%, white)", "color-mix(in oklch, #151a23 8%, white)"] },
+      "graphite-control": { "role": "neutral", "displayName": "石墨控制层", "canonical": "#0d1117", "tonalRamp": ["color-mix(in oklch, #0d1117 35%, black)", "color-mix(in oklch, #0d1117 55%, black)", "#0d1117", "color-mix(in oklch, #0d1117 75%, white)", "color-mix(in oklch, #0d1117 60%, white)", "color-mix(in oklch, #0d1117 45%, white)", "color-mix(in oklch, #0d1117 25%, white)", "color-mix(in oklch, #0d1117 8%, white)"] },
+      "graphite-inset": { "role": "neutral", "displayName": "石墨内层", "canonical": "#0c1016", "tonalRamp": ["color-mix(in oklch, #0c1016 35%, black)", "color-mix(in oklch, #0c1016 55%, black)", "#0c1016", "color-mix(in oklch, #0c1016 75%, white)", "color-mix(in oklch, #0c1016 60%, white)", "color-mix(in oklch, #0c1016 45%, white)", "color-mix(in oklch, #0c1016 25%, white)", "color-mix(in oklch, #0c1016 8%, white)"] },
+      "decision-lime": { "role": "primary", "displayName": "决策荧光绿", "canonical": "#b9f56a", "tonalRamp": ["color-mix(in oklch, #b9f56a 35%, black)", "color-mix(in oklch, #b9f56a 55%, black)", "color-mix(in oklch, #b9f56a 75%, black)", "#b9f56a", "color-mix(in oklch, #b9f56a 82%, white)", "color-mix(in oklch, #b9f56a 62%, white)", "color-mix(in oklch, #b9f56a 38%, white)", "color-mix(in oklch, #b9f56a 14%, white)"] },
+      "data-cyan": { "role": "secondary", "displayName": "数据青", "canonical": "#66d9ef", "tonalRamp": ["color-mix(in oklch, #66d9ef 35%, black)", "color-mix(in oklch, #66d9ef 55%, black)", "color-mix(in oklch, #66d9ef 75%, black)", "#66d9ef", "color-mix(in oklch, #66d9ef 82%, white)", "color-mix(in oklch, #66d9ef 62%, white)", "color-mix(in oklch, #66d9ef 38%, white)", "color-mix(in oklch, #66d9ef 14%, white)"] },
+      "data-amber": { "role": "secondary", "displayName": "数据琥珀", "canonical": "#f6c75b", "tonalRamp": ["color-mix(in oklch, #f6c75b 35%, black)", "color-mix(in oklch, #f6c75b 55%, black)", "color-mix(in oklch, #f6c75b 75%, black)", "#f6c75b", "color-mix(in oklch, #f6c75b 82%, white)", "color-mix(in oklch, #f6c75b 62%, white)", "color-mix(in oklch, #f6c75b 38%, white)", "color-mix(in oklch, #f6c75b 14%, white)"] },
+      "data-violet": { "role": "secondary", "displayName": "数据紫", "canonical": "#b39cff", "tonalRamp": ["color-mix(in oklch, #b39cff 35%, black)", "color-mix(in oklch, #b39cff 55%, black)", "color-mix(in oklch, #b39cff 75%, black)", "#b39cff", "color-mix(in oklch, #b39cff 82%, white)", "color-mix(in oklch, #b39cff 62%, white)", "color-mix(in oklch, #b39cff 38%, white)", "color-mix(in oklch, #b39cff 14%, white)"] },
+      "position-pg": { "role": "tertiary", "displayName": "控卫冰青", "canonical": "#67d8f1", "tonalRamp": ["color-mix(in oklch, #67d8f1 35%, black)", "color-mix(in oklch, #67d8f1 55%, black)", "color-mix(in oklch, #67d8f1 75%, black)", "#67d8f1", "color-mix(in oklch, #67d8f1 82%, white)", "color-mix(in oklch, #67d8f1 62%, white)", "color-mix(in oklch, #67d8f1 38%, white)", "color-mix(in oklch, #67d8f1 14%, white)"] },
+      "position-sg": { "role": "tertiary", "displayName": "分卫淡紫", "canonical": "#b69cff", "tonalRamp": ["color-mix(in oklch, #b69cff 35%, black)", "color-mix(in oklch, #b69cff 55%, black)", "color-mix(in oklch, #b69cff 75%, black)", "#b69cff", "color-mix(in oklch, #b69cff 82%, white)", "color-mix(in oklch, #b69cff 62%, white)", "color-mix(in oklch, #b69cff 38%, white)", "color-mix(in oklch, #b69cff 14%, white)"] },
+      "position-sf": { "role": "tertiary", "displayName": "小前薄荷", "canonical": "#8ee6a4", "tonalRamp": ["color-mix(in oklch, #8ee6a4 35%, black)", "color-mix(in oklch, #8ee6a4 55%, black)", "color-mix(in oklch, #8ee6a4 75%, black)", "#8ee6a4", "color-mix(in oklch, #8ee6a4 82%, white)", "color-mix(in oklch, #8ee6a4 62%, white)", "color-mix(in oklch, #8ee6a4 38%, white)", "color-mix(in oklch, #8ee6a4 14%, white)"] },
+      "position-pf": { "role": "tertiary", "displayName": "大前暖橙", "canonical": "#f3b36b", "tonalRamp": ["color-mix(in oklch, #f3b36b 35%, black)", "color-mix(in oklch, #f3b36b 55%, black)", "color-mix(in oklch, #f3b36b 75%, black)", "#f3b36b", "color-mix(in oklch, #f3b36b 82%, white)", "color-mix(in oklch, #f3b36b 62%, white)", "color-mix(in oklch, #f3b36b 38%, white)", "color-mix(in oklch, #f3b36b 14%, white)"] },
+      "position-c": { "role": "tertiary", "displayName": "中锋珊瑚", "canonical": "#ff7b7b", "tonalRamp": ["color-mix(in oklch, #ff7b7b 35%, black)", "color-mix(in oklch, #ff7b7b 55%, black)", "color-mix(in oklch, #ff7b7b 75%, black)", "#ff7b7b", "color-mix(in oklch, #ff7b7b 82%, white)", "color-mix(in oklch, #ff7b7b 62%, white)", "color-mix(in oklch, #ff7b7b 38%, white)", "color-mix(in oklch, #ff7b7b 14%, white)"] }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "首屏主张", "purpose": "只用于首屏两行中文主张。" },
+      "headline": { "displayName": "任务标题", "purpose": "用于各攻略任务区的问题式标题。" },
+      "title": { "displayName": "数据标题", "purpose": "用于属性、球队、榜单与卡片主标题。" },
+      "body": { "displayName": "说明正文", "purpose": "用于方法、规则与结论解释。" },
+      "label": { "displayName": "战术标签", "purpose": "用于阶段、权重、筛选、状态与编号。" }
+    },
+    "shadows": [
+      { "name": "ambient-float", "value": "0 20px 60px rgba(0,0,0,.32)", "purpose": "快捷导航、玻璃控制层与返回顶部的环境悬浮。" },
+      { "name": "nav-float", "value": "0 14px 42px rgba(0,0,0,.36)", "purpose": "顶部固定导航与页面内容分离。" },
+      { "name": "mobile-nav-float", "value": "0 -12px 40px rgba(0,0,0,.3)", "purpose": "移动底栏向上脱离页面。" },
+      { "name": "card-hover", "value": "0 18px 50px rgba(0,0,0,.24)", "purpose": "可交互推荐卡悬停抬升。" }
+    ],
+    "motion": [
+      { "name": "state-fast", "value": "180ms ease", "purpose": "球队按钮与剧情摘要的快速状态反馈。" },
+      { "name": "state-standard", "value": "200ms ease", "purpose": "导航、按钮、筛选与展开图标的默认反馈。" },
+      { "name": "card-lift", "value": "250ms ease", "purpose": "推荐卡的轻抬升。" },
+      { "name": "reduced-motion", "value": ".01ms", "purpose": "系统要求减少动态时近乎即时地完成动画与过渡。" }
+    ],
+    "breakpoints": [
+      { "name": "compact-desktop", "value": "980px" },
+      { "name": "mobile", "value": "720px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "进入第一答案或执行主行动的荧光绿按钮。",
+      "html": "<button class=\"ds-btn-primary\">开始选球员 <span aria-hidden=\"true\">↓</span></button>",
+      "css": ".ds-btn-primary { display:inline-flex; align-items:center; justify-content:center; gap:18px; min-height:52px; padding:0 22px; border:1px solid transparent; border-radius:15px; background:var(--lime,#b9f56a); color:#11160c; font:760 15px/1.2 \"SF Pro Display\",\"PingFang SC\",system-ui,sans-serif; cursor:pointer; transition:transform .2s ease,background .2s ease; } .ds-btn-primary:hover { transform:translateY(-2px); } .ds-btn-primary:active { transform:scale(.98); }"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "与主行动并排的低强调幽灵按钮。",
+      "html": "<button class=\"ds-btn-secondary\">查看剧情最优解</button>",
+      "css": ".ds-btn-secondary { display:inline-flex; align-items:center; justify-content:center; min-height:52px; padding:0 22px; border:1px solid var(--line,rgba(255,255,255,.09)); border-radius:15px; background:rgba(255,255,255,.04); color:var(--text,#f4f6f8); font:760 15px/1.2 \"SF Pro Display\",\"PingFang SC\",system-ui,sans-serif; cursor:pointer; transition:transform .2s ease,background .2s ease; } .ds-btn-secondary:hover { transform:translateY(-2px); background:rgba(255,255,255,.07); } .ds-btn-secondary:active { transform:scale(.98); }"
+    },
+    {
+      "name": "Position Selector",
+      "kind": "custom",
+      "description": "以五位置独立颜色回答当前建模位置的签名分段控件。",
+      "html": "<div class=\"ds-position\" role=\"group\" aria-label=\"选择球场位置\"><button class=\"ds-pos-pg\" aria-pressed=\"true\">控球后卫</button><button aria-pressed=\"false\">得分后卫</button><button aria-pressed=\"false\">小前锋</button><button aria-pressed=\"false\">大前锋</button><button aria-pressed=\"false\">中锋</button></div>",
+      "css": ".ds-position { display:flex; padding:5px; border:1px solid var(--line,rgba(255,255,255,.09)); border-radius:18px; background:#0d1117; overflow-x:auto; } .ds-position button { flex:1; min-height:54px; min-width:100px; padding:7px 13px; border:0; border-radius:13px; background:transparent; color:var(--text-muted,#aab3bf); font:760 14px/1.2 \"SF Pro Display\",\"PingFang SC\",system-ui,sans-serif; cursor:pointer; transition:.2s ease; } .ds-position button:hover { color:white; background:rgba(255,255,255,.04); } .ds-position .ds-pos-pg { background:#67d8f1; color:#090d11; box-shadow:0 8px 26px color-mix(in srgb,#67d8f1 22%,transparent); }"
+    },
+    {
+      "name": "Active Filter Chip",
+      "kind": "chip",
+      "refersTo": "chip-active",
+      "description": "属性与标签筛选的选中状态。",
+      "html": "<button class=\"ds-chip-active\" aria-pressed=\"true\">三分</button>",
+      "css": ".ds-chip-active { padding:9px 15px; border:1px solid var(--lime,#b9f56a); border-radius:12px; background:var(--lime,#b9f56a); color:#10150c; font:690 13px/1.2 \"SF Pro Display\",\"PingFang SC\",system-ui,sans-serif; cursor:pointer; transition:.2s ease; } .ds-chip-active:hover { filter:brightness(1.04); transform:translateY(-1px); } .ds-chip-active:active { transform:scale(.985); }"
+    },
+    {
+      "name": "Search Input",
+      "kind": "input",
+      "refersTo": "input-search",
+      "description": "剧情与称号库的高密度关键词搜索字段。",
+      "html": "<label class=\"ds-field\"><span>查找剧情</span><input type=\"search\" placeholder=\"输入事件名或关键词\"></label>",
+      "css": ".ds-field { display:grid; gap:7px; color:var(--text-dim,#858f9d); font:700 11px/1.2 \"SF Pro Display\",\"PingFang SC\",system-ui,sans-serif; } .ds-field span { margin-left:5px; } .ds-field input { width:100%; min-height:54px; padding:0 15px; outline:none; border:1px solid var(--line,rgba(255,255,255,.09)); border-radius:14px; background:#0b0f14; color:var(--text,#f4f6f8); font:400 16px/1.6 \"SF Pro Display\",\"PingFang SC\",system-ui,sans-serif; } .ds-field input::placeholder { color:var(--text-dim,#858f9d); } .ds-field input:focus { border-color:rgba(185,245,106,.4); box-shadow:0 0 0 4px rgba(185,245,106,.06); }"
+    },
+    {
+      "name": "Data Pick Card",
+      "kind": "card",
+      "refersTo": "card-data",
+      "description": "把权重、属性、球员与评级压成一个可扫描答案的核心卡片。",
+      "html": "<article class=\"ds-pick-card\"><header><span class=\"ds-index\">01</span><div><small>权重 18%</small><h3>传球</h3></div><span class=\"ds-grade\"><strong>96</strong><em>A+</em></span></header><div class=\"ds-player\"><span class=\"ds-avatar\">约</span><div><strong>尼古拉-约基奇</strong><small>丹佛掘金 · C</small></div></div><p>同时也是该项全库最高</p></article>",
+      "css": ".ds-pick-card { width:min(100%,360px); padding:20px; border:1px solid var(--line,rgba(255,255,255,.09)); border-radius:22px; background:var(--surface,#10141b); color:var(--text,#f4f6f8); font-family:\"SF Pro Display\",\"PingFang SC\",system-ui,sans-serif; transition:.25s ease; } .ds-pick-card:hover { transform:translateY(-3px); border-color:var(--line-strong,rgba(255,255,255,.15)); box-shadow:0 18px 50px rgba(0,0,0,.24); } .ds-pick-card header { display:flex; align-items:center; gap:12px; } .ds-pick-card header>div { flex:1; } .ds-index,.ds-pick-card small { color:var(--text-dim,#858f9d); font-size:11px; } .ds-index { font-weight:750; letter-spacing:.1em; } .ds-pick-card h3 { margin:0; font-size:25px; line-height:1.1; } .ds-grade { display:inline-flex; align-items:center; gap:6px; color:#ff6b6b; } .ds-grade strong { font-size:21px; } .ds-grade em { display:grid; place-items:center; min-width:33px; height:27px; padding:0 6px; border:1px solid color-mix(in srgb,#ff6b6b 25%,transparent); border-radius:8px; background:color-mix(in srgb,#ff6b6b 12%,transparent); font-style:normal; font-weight:820; font-size:12px; } .ds-player { display:flex; align-items:center; gap:14px; margin:18px 0; } .ds-avatar { display:grid; place-items:center; width:64px; height:64px; border:1px solid var(--line-strong,rgba(255,255,255,.15)); border-radius:24%; background:linear-gradient(145deg,#222b36,#10151c); color:var(--text-muted,#aab3bf); font-weight:850; } .ds-player div { display:flex; flex-direction:column; } .ds-player div>strong { font-size:18px; } .ds-player small { color:var(--text-muted,#aab3bf); } .ds-pick-card>p { margin:0; padding:11px 13px; border:1px solid rgba(185,245,106,.13); border-radius:14px; background:rgba(185,245,106,.055); color:#cfeaaa; font-size:12px; font-weight:720; }"
+    },
+    {
+      "name": "Glass Navigation",
+      "kind": "nav",
+      "description": "在长攻略页持续提供任务锚点的磨砂玻璃导航。",
+      "html": "<nav class=\"ds-nav\" aria-label=\"主要导航\"><a class=\"ds-brand\" href=\"#\"><span>传</span><strong>传奇球星攻略</strong></a><div><a href=\"#\">最优组合</a><a href=\"#\">球队速查</a><a href=\"#\">属性榜</a><a href=\"#\">剧情</a></div><a class=\"ds-update\" href=\"#\">2026 年 8 月 21 日版</a></nav>",
+      "css": ".ds-nav { display:flex; align-items:center; gap:18px; width:min(100%,1040px); min-height:58px; padding:8px 10px; border:1px solid rgba(255,255,255,.12); border-radius:19px; background:rgba(16,20,27,.72); color:var(--text,#f4f6f8); box-shadow:0 14px 42px rgba(0,0,0,.36); backdrop-filter:blur(22px) saturate(135%); font-family:\"SF Pro Display\",\"PingFang SC\",system-ui,sans-serif; } .ds-brand { display:flex; align-items:center; gap:9px; color:inherit; text-decoration:none; white-space:nowrap; } .ds-brand span { display:grid; place-items:center; width:34px; height:34px; border-radius:11px; background:var(--lime,#b9f56a); color:#10140c; font-weight:900; } .ds-brand strong { font-size:15px; } .ds-nav>div { flex:1; display:flex; justify-content:center; gap:4px; } .ds-nav>div a,.ds-update { padding:8px 11px; border-radius:11px; color:var(--text-muted,#aab3bf); text-decoration:none; font-size:13px; font-weight:650; transition:.2s ease; } .ds-nav>div a:hover,.ds-update:hover { color:white; background:rgba(255,255,255,.07); } .ds-update { margin-left:auto; background:rgba(185,245,106,.08); color:#dffdb8; white-space:nowrap; } @media(max-width:720px){.ds-nav>div{display:none}.ds-update{display:none}}"
+    }
+  ],
+  "narrative": {
+    "northStar": "荧光战术台",
+    "overview": "这套界面像一张停在比赛暂停时刻的石墨黑战术板：基底深而安静，控制层像磨砂玻璃悬在其上，荧光绿只在需要玩家立刻行动或确认正确答案时亮起。视觉表达服务于高密度决策，不用装饰抢夺球员、属性、权重和推荐结论的注意力。\n\n大号、紧缩字距的中文主张与细密数据卡并置，建立“先给结论，再展开依据”的阅读节奏。五个位置各自拥有稳定的识别色；评级继续使用游戏数据提供的字母颜色，二者不互相替代。",
+    "keyCharacteristics": [
+      "石墨黑场地与逐级抬升的深色表面。",
+      "克制的磨砂玻璃仅用于持续导航和高价值控制层。",
+      "荧光绿是动作、选中态和推荐答案的稀缺信号。",
+      "五位置独立色与游戏评级色构成两套不混用的数据语义。",
+      "巨型标题、紧凑标签与高密度卡片共同承担信息层级。"
+    ],
+    "rules": [
+      { "name": "The Green Means Answer Rule", "body": "荧光绿代表“现在行动、当前选中或这是推荐答案”；普通装饰不占用这一颜色。", "section": "colors" },
+      { "name": "The Two Data Languages Rule", "body": "位置色回答“你在看哪个位置”，评级色回答“这个值有多好”，绝不互换含义。", "section": "colors" },
+      { "name": "The Scale Before Ornament Rule", "body": "信息层级先由字号、字重、字距和颜色明度建立，不以额外字体或渐变字制造层级。", "section": "typography" },
+      { "name": "The Answer First Layout Rule", "body": "每个任务区先呈现位置或筛选控制与第一答案，再把替补、完整榜单和解释放入后续区域或展开层。", "section": "layout" },
+      { "name": "The Glass Is Infrastructure Rule", "body": "玻璃材质属于持续导航与关键控制基础设施，普通数据卡保持实体石墨表面。", "section": "elevation" },
+      { "name": "The Radius Follows Scale Rule", "body": "容器越大圆角越大，嵌套控件逐级收紧；同层级卡片保持统一轮廓。", "section": "shapes" }
+    ],
+    "dos": [
+      "Do 先放位置或筛选控制与第一推荐，再展示替补、全榜和推导说明。",
+      "Do 用荧光绿标记动作、选中态和推荐结论，并让普通说明保持中性。",
+      "Do 严格保持五位置色与游戏评级色各自的语义边界。",
+      "Do 在手机端把多列数据收为单列，并让高选项量控件横向滚动或压成图标网格。",
+      "Do 保留 52px 以上主要按钮、54px 输入以及减少动态效果适配。"
+    ],
+    "donts": [
+      "Don't 把荧光绿铺成大面积装饰背景；它的稀缺性就是决策效率。",
+      "Don't 给每张数据卡都加玻璃、重阴影或持续发光；普通卡片依靠石墨层级与细边框。",
+      "Don't 用位置色表达评级高低，也不要用评级色表达当前所选位置。",
+      "Don't 在窄屏强行保留桌面多列或固定宽表格。",
+      "Don't 发明新的评级颜色、替换数据源颜色，或把随机新秀混入确定性排行的视觉语义。"
+    ]
+  }
+}

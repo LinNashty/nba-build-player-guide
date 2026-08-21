@@ -1,0 +1,36 @@
+{
+  "meta": {
+    "source": "我创造的完美球员",
+    "extractedAt": "2026-08-21",
+    "pageTitle": "我创造的完美球员",
+    "playerCount": 525,
+    "teamCount": 30,
+    "attrCount": 13,
+    "formula": "round(raw × min(1, targetPositionAverage / sourceMainPositionAverage))",
+    "notes": [
+      "2026 届生涯模式新秀由代码随机生成属性，不纳入静态建球排行榜。",
+      "排行榜只使用进入建球球员库的确定性现役球员数据。"
+    ]
+  },
+  "diff": {
+    "baseline": "2026-07-20",
+    "added": [
+      {
+        "name": "LeBron James",
+        "cname": "勒布朗-詹姆斯",
+        "team": "PHI",
+        "ovr": 92
+      }
+    ],
+    "removed": [],
+    "teamChanges": [],
+    "attributeChanges": [],
+    "leaderboardChanges": []
+  },
+  "eventCounts": {
+    "staged": 112,
+    "legacy": 6,
+    "registry": 91
+  },
+  "titleCount": 100
+}
