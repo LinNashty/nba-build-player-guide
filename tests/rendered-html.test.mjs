@@ -45,6 +45,9 @@ test("ships the required always-visible strategy surfaces", async () => {
   const html = await (await render()).text();
   assert.equal((html.match(/class="pick-card"/g) || []).length, 13);
   assert.equal((html.match(/class="attribute-choice"/g) || []).length, 13);
+  assert.match(html, /class="choice-rank">1</);
+  assert.match(html, /class="grade"[^>]+aria-label="评级 [A-F]/);
+  assert.doesNotMatch(html, /class="status-dock"/);
   assert.match(html, /class="alternatives"/);
   assert.match(html, /class="ranking-columns"/);
   assert.match(html, /class="story-directory"/);

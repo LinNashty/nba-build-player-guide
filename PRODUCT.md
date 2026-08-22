@@ -25,7 +25,7 @@ delegated: bundled Sites vinext starter, chosen because the finished guide must 
 ## Operating Context
 
 - 首屏先选生涯／传奇模式；传奇模式再选 1984、1996 或 2003 年代。
-- 顶部状态条统一控制球场位置，各板块立即同步。
+- 传奇模式顶部仅保留年代快速切换；球场位置在各任务板块内就地选择，并保持全站同步。
 - 玩家通常用手机上下滑动，并在比赛过程中高频切换球队和属性。
 - 排行榜默认显示前 20，点击后直接展示 1—40。
 - 模式、年代和位置保存在本机并写入 URL；排除名单不写入 URL，切队即清空。
