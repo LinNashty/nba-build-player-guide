@@ -7,7 +7,8 @@ const research = path.join(root, "research", "current-2026-08-21");
 const dataSource = path.join(research, "2678-5hu3djrc-upload-1783494754597-12.js");
 const configSource = path.join(research, "2678-qlg35lrc-upload-1783494754597-24.js");
 const spriteSource = path.join(research, "2678-mdo4zerc-upload-1783494754597-21.js");
-const htmlSource = path.join(research, "__ai_app.html");
+const liveHtmlSource = "/tmp/live-hupu-legend-app.html";
+const htmlSource = fs.existsSync(liveHtmlSource) ? liveHtmlSource : path.join(research, "__ai_app.html");
 const oldGuideSource = "/Users/linnashty/Documents/Codex/2026-07-20/visualize-plugin-visualize-openai-bundled/outputs/nba-build-player-guide.html";
 
 function evaluateSource(file, expose) {
@@ -88,6 +89,15 @@ const PROFILE_LABELS = {
   controversy: "争议值",
 };
 
+const LEGEND_SCORE_LABELS = {
+  classRivalry: "同届竞争", dynasty: "王朝线", individualLegend: "个人传奇",
+  cityBond: "城市羁绊", mediaHeat: "媒体热度", mediaTrust: "媒体信任",
+  lockerRoom: "更衣室", craft: "技艺路线", playoffMyth: "季后赛神话",
+  historyShift: "历史偏移", superteam: "巨星同盟", nationalIcon: "全国偶像",
+  legacyCare: "生涯照护", commercialPull: "商业拉力", nextFacePressure: "接班压力",
+  oldSchoolRespect: "老派认可",
+};
+
 function summarizeChoice(choice) {
   const code = functionSource(choice.apply);
   const effects = [];
@@ -100,6 +110,10 @@ function summarizeChoice(choice) {
   for (const match of code.matchAll(/addProfileDelta\(\s*['"]([^'"]+)['"]\s*,\s*(-?\d+)/g)) {
     const [, key, amount] = match;
     effects.push(`${PROFILE_LABELS[key] || key}${Number(amount) >= 0 ? "+" : ""}${amount}`);
+  }
+  for (const match of code.matchAll(/addLegendStoryScore\(\s*['"]([^'"]+)['"]\s*,\s*(-?\d+)/g)) {
+    const [, key, amount] = match;
+    effects.push(`${LEGEND_SCORE_LABELS[key] || key}${Number(amount) >= 0 ? "+" : ""}${amount}`);
   }
   if (/injuryRiskBonus/.test(code)) effects.push("改变下赛季伤病风险");
   if (/formVariance/.test(code)) effects.push("改变下赛季状态波动");
@@ -284,7 +298,7 @@ for (const position of positions) {
   for (const attr of attrs) {
     rankings[position][attr] = players.map((player) => rankingRow(player, position, attr)).sort((a, b) =>
       b.value - a.value || b.raw - a.raw || a.cname.localeCompare(b.cname, "zh-CN") || a.playerId.localeCompare(b.playerId)
-    ).slice(0, 30);
+    ).slice(0, 40);
   }
   const costs = attrs.map((attr) => players.map((player) => {
     const value = adjustedValue({ ...player.raw, pos: player.pos }, position, attr, config).value;
@@ -326,6 +340,11 @@ const branchEvents = safeEvaluateArray(extractAssignedArray(html, "const BRANCH_
 const stagedBranchEvents = safeEvaluateArray(extractAssignedArray(html, "const STAGED_BRANCH_EVENTS =").source, "staged-branch-events")
   .map((event) => normalizeEvent(event, "当前分阶段剧情"));
 const registryEvents = extractRegistryEvents(html);
+const legendStoryEvents = {
+  "1984": safeEvaluateArray(extractAssignedArray(html, "const LEGEND_STORY_1984_EVENTS =").source, "legend-story-1984").map((event) => normalizeEvent(event, "1984 时代专属")),
+  "1996": safeEvaluateArray(extractAssignedArray(html, "const LEGEND_STORY_1996_EVENTS =").source, "legend-story-1996").map((event) => normalizeEvent(event, "1996 时代专属")),
+  "2003": safeEvaluateArray(extractAssignedArray(html, "const LEGEND_STORY_EVENTS =").source, "legend-story-2003").map((event) => normalizeEvent(event, "2003 时代专属")),
+};
 const careerTitles = safeEvaluateArray(extractAssignedArray(html, "var CAREER_TITLE_POOL =").source, "career-title-pool")
   .map((item, index) => ({ id: `title-${index + 1}`, title: item.title, tags: item.tags || [] }));
 
@@ -367,7 +386,7 @@ if (oldGuide) {
 const guide = {
   meta: {
     source: "我创造的完美球员",
-    extractedAt: "2026-08-21",
+    extractedAt: "2026-08-22",
     pageTitle: "我创造的完美球员",
     playerCount: players.length,
     teamCount: current.NBA2K_TEAMS.length,
@@ -392,6 +411,7 @@ const guide = {
   teamAdvice,
   events: {
     staged: stagedBranchEvents,
+    legendByEra: legendStoryEvents,
     legacy: branchEvents,
     registry: registryEvents,
     invalidNotes: [
