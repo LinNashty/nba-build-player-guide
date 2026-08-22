@@ -1,0 +1,28 @@
+{
+  "meta": {
+    "extractedAt": "2026-08-22",
+    "verifiedBoards": 195,
+    "verifiedTop20Rows": 3900,
+    "exportedTop40Rows": 7800
+  },
+  "eras": {
+    "1984": {
+      "label": "1984 黄金一代",
+      "teamCount": 23,
+      "playerCount": 352,
+      "accent": "#D9A441"
+    },
+    "1996": {
+      "label": "1996 黄金一代",
+      "teamCount": 29,
+      "playerCount": 442,
+      "accent": "#A58BFF"
+    },
+    "2003": {
+      "label": "2003 白金一代",
+      "teamCount": 29,
+      "playerCount": 442,
+      "accent": "#58B5FF"
+    }
+  }
+}

@@ -115,8 +115,12 @@ function PositionTabs({ value, onChange, compact = false }: { value: Position; o
   return <div className={`position-tabs ${compact ? "compact" : ""}`}>{POSITIONS.map((position) => <button key={position} data-pos={position} className={value === position ? "active" : ""} onClick={() => onChange(position)} aria-pressed={value === position}><b>{position}</b><span>{POSITION_NAMES[position]}</span>{!compact && <small>{POSITION_HINTS[position]}</small>}</button>)}</div>;
 }
 
-function Hero({ mode, setMode, era, setEra, careerData, legendData }: any) {
-  return <header id="top" className="hero"><div className="hero-orb orb-one" /><div className="hero-orb orb-two" /><div className="shell hero-inner"><div className="source-pill"><i /> 已按游戏当前公开源码核验 · {cnDate(legendData.meta.extractedAt)}</div><p className="hero-kicker">打造我的传奇球星 · 全方位攻略</p><h1>抽到谁、怎么选，<br /><span>一屏给你答案。</span></h1><p className="hero-copy">生涯模式查现役，传奇模式查队史。位置衰减、无冲突组合、球队三备选、剧情加点、奖项和终局判词，一套站点全部讲明白。</p><div className="mode-selector" aria-label="选择游戏模式"><button className={mode === "career" ? "active career" : "career"} onClick={() => setMode("career")}><span>生涯模式</span><strong>525 名现役球员</strong><p>正常跨位置衰减 · 当前阵容</p></button><button className={mode === "legend" ? "active legend" : "legend"} onClick={() => setMode("legend")}><span>传奇模式</span><strong>球队历史阵容</strong><p>只承受 30% 跨位置损失</p></button></div>{mode === "legend" && <div className="era-selector" aria-label="选择传奇时代">{ERAS.map((value) => { const item = legendData.eras[value]; return <button key={value} className={era === value ? "active" : ""} style={{ "--era": item.accent } as React.CSSProperties} onClick={() => setEra(value)}><b>{value}</b><span>{item.label.replace(value, "")}</span><small>{item.teamCount} 队 · {item.playerCount} 条候选</small></button>; })}</div>}<div className="hero-actions"><a className="button primary" href="#optimal">直接看最优组合 <span>↓</span></a><a className="button ghost" href="#team">随机球队速查</a></div><div className="hero-proof"><div><strong>{mode === "career" ? careerData.meta.playerCount : legendData.eras[era].playerCount}</strong><span>{mode === "career" ? "现役确定性球员" : "当前时代候选"}</span></div><div><strong>5 × 13</strong><span>全位置属性榜</span></div><div><strong>1—40</strong><span>榜单展开范围</span></div><div><strong>{mode === "legend" ? "3900" : careerData.events.staged.length}</strong><span>{mode === "legend" ? "条前20已核验" : "条分阶段剧情"}</span></div></div></div></header>;
+function Hero({ mode, setMode, era, setEra, careerSummary, legendSummary }: any) {
+  return <header id="top" className="hero"><div className="hero-orb orb-one" /><div className="hero-orb orb-two" /><div className="hero-grid" aria-hidden="true" /><div className="shell hero-inner"><div className="source-pill">攻略数据已核验至 {cnDate(legendSummary.meta.extractedAt)}</div><p className="hero-kicker">打造我的传奇球星全方位攻略</p><h1>抽到谁，怎么选？<br /><span>答案就在这一屏。</span></h1><p className="hero-copy">查位置衰减、无冲突组合、球队备选、剧情加点和终局判词。</p><div className="mode-selector" aria-label="选择游戏模式"><button className={mode === "career" ? "active career" : "career"} onClick={() => setMode("career")}><span>生涯模式</span><strong>{careerSummary.meta.playerCount} 名现役球员</strong><p>当前阵容，正常跨位置衰减</p></button><button className={mode === "legend" ? "active legend" : "legend"} onClick={() => setMode("legend")}><span>传奇模式</span><strong>球队历史阵容</strong><p>只承受 30% 跨位置损失</p></button></div>{mode === "legend" && <div className="era-selector" aria-label="选择传奇时代">{ERAS.map((value) => { const item = legendSummary.eras[value]; return <button key={value} className={era === value ? "active" : ""} style={{ "--era": item.accent } as React.CSSProperties} onClick={() => setEra(value)}><b>{value}</b><span>{item.label.replace(value, "")}</span><small>{item.teamCount} 队，{item.playerCount} 条候选</small></button>; })}</div>}<div className="hero-actions"><a className="button primary" href="#optimal">查看最优组合</a><a className="button ghost" href="#team">随机球队速查</a></div><div className="hero-proof"><div><strong>{mode === "career" ? careerSummary.meta.playerCount : legendSummary.eras[era].playerCount}</strong><span>{mode === "career" ? "现役确定性球员" : "当前时代候选"}</span></div><div><strong>5 × 13</strong><span>全位置属性榜</span></div><div><strong>1-40</strong><span>榜单展开范围</span></div><div><strong>{mode === "legend" ? legendSummary.meta.verifiedTop20Rows : careerSummary.eventCounts.staged}</strong><span>{mode === "legend" ? "条前 20 已核验" : "条分阶段剧情"}</span></div></div></div></header>;
+}
+
+function DataLoading({ error, onRetry }: { error: string; onRetry: () => void }) {
+  return <section className="data-loading shell" aria-live="polite"><div className="loading-copy"><span>{error ? "数据加载遇到问题" : "首屏已就绪"}</span><h2>{error ? "攻略数据暂时没有载入" : "正在载入完整攻略"}</h2><p>{error || "球员库与榜单正在后台加载，不影响模式和年代选择。"}</p>{error && <button onClick={onRetry}>重新加载</button>}</div><div className="loading-bars" aria-hidden="true"><i /><i /><i /></div></section>;
 }
 
 function LegendOverview({ legendData, era }: any) {
@@ -273,13 +277,17 @@ function DataSection({ careerData, legendData }: any) {
   return <section id="data" className="section shell"><SectionHeading index="09" title={`数据快照 · ${cnDate(legendData.meta.extractedAt)}`} text="站点使用人工核验快照，不在打开页面时偷偷读取远端脚本。这样游戏临时改版也不会让旧结论无声漂移。" /><div className="data-grid"><article><span>生涯模式</span><h3>{careerData.meta.playerCount} 人</h3><p>30 队确定性现役球员；随机生成的新秀不混进静态榜。</p></article><article><span>传奇时代</span><h3>23 / 29 / 29 队</h3><p>1984 为 352 条候选；1996、2003 均为 442 条候选。</p></article><article><span>完整核验</span><h3>195 榜</h3><p>3 时代 × 5 位置 × 13 属性；前 20 共 3900 条逐项通过。</p></article><article><span>网页扩展</span><h3>7800 条</h3><p>每榜额外提供至第 40 名，便于排除球员后继续查找。</p></article></div><div className="data-notes"><div><span>生涯模式公式</span><p>实得 = 四舍五入〔原值 × 较小值（1，目标位置均值 ÷ 来源位置均值）〕。</p></div><div><span>传奇模式公式</span><p>传奇系数 = 1 −（1 − 普通系数）× 30%；实得 = 四舍五入（原值 × 传奇系数）。</p></div><div><span>三个时代为什么会有榜单差异</span><p>同一球队、同一球员版本的数值没变；差异只来自该时代可随机到的球队集合不同。</p></div><div><span>同名球员规则</span><p>不同球队版本会分别展示在榜上，但建球时同一姓名整局共用一次使用机会。</p></div></div></section>;
 }
 
-export default function GuideApp({ careerData, legendData }: { careerData: any; legendData: any }) {
+export default function GuideApp({ careerSummary, legendSummary }: { careerSummary: any; legendSummary: any }) {
   const [mode, setMode] = useState<Mode>("career");
   const [era, setEra] = useState<Era>("2003");
   const [position, setPosition] = useState<Position>("PG");
   const [team, setTeam] = useState("ATL");
   const [menuOpen, setMenuOpen] = useState(false);
   const [stateReady, setStateReady] = useState(false);
+  const [careerData, setCareerData] = useState<any>(null);
+  const [legendData, setLegendData] = useState<any>(null);
+  const [loadError, setLoadError] = useState("");
+  const [loadAttempt, setLoadAttempt] = useState(0);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -295,7 +303,41 @@ export default function GuideApp({ careerData, legendData }: { careerData: any; 
     setStateReady(true);
   }, []);
 
+  useEffect(() => {
+    const controller = new AbortController();
+    let disposed = false;
+    let idleId = 0;
+    let timerId = 0;
+    const load = async () => {
+      try {
+        setLoadError("");
+        const [careerResponse, legendResponse] = await Promise.all([
+          fetch("/data/guide-data.json", { signal: controller.signal }),
+          fetch("/data/legend-data.json", { signal: controller.signal }),
+        ]);
+        if (!careerResponse.ok || !legendResponse.ok) throw new Error("完整数据请求失败，请检查网络后重试。");
+        const [nextCareerData, nextLegendData] = await Promise.all([careerResponse.json(), legendResponse.json()]);
+        if (!disposed) {
+          setCareerData(nextCareerData);
+          setLegendData(nextLegendData);
+        }
+      } catch (error) {
+        if (!disposed && !controller.signal.aborted) setLoadError(error instanceof Error ? error.message : "完整数据暂时无法载入。");
+      }
+    };
+    const browserWindow = window as any;
+    if (browserWindow.requestIdleCallback) idleId = browserWindow.requestIdleCallback(load, { timeout: 350 });
+    else timerId = window.setTimeout(load, 80);
+    return () => {
+      disposed = true;
+      controller.abort();
+      if (idleId && browserWindow.cancelIdleCallback) browserWindow.cancelIdleCallback(idleId);
+      if (timerId) window.clearTimeout(timerId);
+    };
+  }, [loadAttempt]);
+
   const context = useMemo(() => {
+    if (!careerData || !legendData) return null;
     if (mode === "career") return {
       ...careerData, mode, era: null, teams: Object.keys(careerData.teamNames), players: careerData.players,
       teamNames: careerData.teamNames, rankings: careerData.rankings, optimal: careerData.optimal,
@@ -309,8 +351,8 @@ export default function GuideApp({ careerData, legendData }: { careerData: any; 
   }, [careerData, era, legendData, mode]);
 
   useEffect(() => {
-    if (!context.teams.includes(team)) setTeam(context.teams[0]);
-  }, [context.teams, team]);
+    if (context && !context.teams.includes(team)) setTeam(context.teams[0]);
+  }, [context, team]);
 
   useEffect(() => {
     if (!stateReady) return;
@@ -325,20 +367,22 @@ export default function GuideApp({ careerData, legendData }: { careerData: any; 
 
   return <main className={`mode-${mode}`}>
     <nav className="top-nav"><a className="brand" href="#top"><span>传</span><strong>传奇球星攻略</strong></a><div className="desktop-links">{NAV.slice(1, 8).map(([name, href]) => <a key={href} href={href}>{name}</a>)}</div><button className="menu-trigger" onClick={() => setMenuOpen(true)}>目录</button></nav>
-    <Hero mode={mode} setMode={setMode} era={era} setEra={setEra} careerData={careerData} legendData={legendData} />
-    {mode === "legend" && <div className="status-dock"><div className="shell"><div className="era-dock" aria-label="快速切换传奇年代"><span>切换年代</span>{ERAS.map((value) => { const item = legendData.eras[value]; return <button key={value} className={era === value ? "active" : ""} style={{ "--era": item.accent } as React.CSSProperties} onClick={() => setEra(value)} aria-pressed={era === value}><strong>{value}</strong><small>{item.label.replace(value, "")}</small></button>; })}</div></div></div>}
-    <div className="quick-nav shell">{NAV.map(([name, href], index) => <a key={href} href={href}><span>{String(index).padStart(2, "0")}</span>{name}</a>)}</div>
-    {mode === "legend" ? <LegendOverview legendData={legendData} era={era} /> : <CareerOverview careerData={careerData} />}
-    <OptimalSection context={context} position={position} setPosition={setPosition} />
-    <TeamSection context={context} position={position} setPosition={setPosition} team={team} setTeam={setTeam} />
-    <RankingsSection context={context} position={position} setPosition={setPosition} />
-    <StorySection context={context} careerData={careerData} position={position} setPosition={setPosition} />
-    <AwardsSection mode={mode} />
-    <ProfileSection mode={mode} />
-    <LegacySection mode={mode} />
-    <TitleLibrary data={careerData} />
-    <DataSection careerData={careerData} legendData={legendData} />
-    <footer><div className="shell"><div><strong>打造我的传奇球星 · 全方位攻略</strong><p>当前数据快照：{cnDate(legendData.meta.extractedAt)}。游戏更新后请以新核验版本为准。</p></div><a href="#top">回到顶部 ↑</a></div></footer>
+    <Hero mode={mode} setMode={setMode} era={era} setEra={setEra} careerSummary={careerSummary} legendSummary={legendSummary} />
+    {mode === "legend" && <div className="status-dock"><div className="shell"><div className="era-dock" aria-label="快速切换传奇年代"><span>切换年代</span>{ERAS.map((value) => { const item = legendSummary.eras[value]; return <button key={value} className={era === value ? "active" : ""} style={{ "--era": item.accent } as React.CSSProperties} onClick={() => setEra(value)} aria-pressed={era === value}><strong>{value}</strong><small>{item.label.replace(value, "")}</small></button>; })}</div></div></div>}
+    {context && careerData && legendData ? <>
+      <div className="quick-nav shell">{NAV.map(([name, href], index) => <a key={href} href={href}><span>{String(index).padStart(2, "0")}</span>{name}</a>)}</div>
+      {mode === "legend" ? <LegendOverview legendData={legendData} era={era} /> : <CareerOverview careerData={careerData} />}
+      <OptimalSection context={context} position={position} setPosition={setPosition} />
+      <TeamSection context={context} position={position} setPosition={setPosition} team={team} setTeam={setTeam} />
+      <RankingsSection context={context} position={position} setPosition={setPosition} />
+      <StorySection context={context} careerData={careerData} position={position} setPosition={setPosition} />
+      <AwardsSection mode={mode} />
+      <ProfileSection mode={mode} />
+      <LegacySection mode={mode} />
+      <TitleLibrary data={careerData} />
+      <DataSection careerData={careerData} legendData={legendData} />
+    </> : <DataLoading error={loadError} onRetry={() => setLoadAttempt((value) => value + 1)} />}
+    <footer><div className="shell"><div><strong>打造我的传奇球星全方位攻略</strong><p>当前数据快照：{cnDate(legendSummary.meta.extractedAt)}。游戏更新后请以新核验版本为准。</p></div><a href="#top">回到顶部 ↑</a></div></footer>
     <a className="back-top" href="#top" aria-label="回到顶部">↑</a>
     {menuOpen && <div className="menu-backdrop" onClick={() => setMenuOpen(false)}><aside className="mobile-menu" onClick={(event) => event.stopPropagation()}><header><div><span>页面目录</span><strong>{mode === "career" ? "生涯模式" : `传奇模式 · ${era}`}</strong></div><button onClick={() => setMenuOpen(false)}>关闭</button></header><div>{NAV.map(([name, href], index) => <a key={href} href={href} onClick={() => setMenuOpen(false)}><span>{String(index).padStart(2, "0")}</span>{name}</a>)}</div></aside></div>}
     <button className="mobile-menu-button" onClick={() => setMenuOpen(true)}><span>目录</span><b>{mode === "career" ? "生涯" : `${era} 传奇`}</b></button>

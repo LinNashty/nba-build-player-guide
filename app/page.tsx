@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import GuideApp from "./GuideApp";
-import careerData from "./data/guide-data.json";
-import legendData from "./data/legend-data.json";
+import careerSummary from "./data/guide-summary.json";
+import legendSummary from "./data/legend-summary.json";
 
 export const metadata: Metadata = {
   title: "打造我的传奇球星｜全方位攻略",
@@ -9,5 +9,5 @@ export const metadata: Metadata = {
 };
 
 export default function Home() {
-  return <GuideApp careerData={careerData} legendData={legendData} />;
+  return <GuideApp careerSummary={careerSummary} legendSummary={legendSummary} />;
 }

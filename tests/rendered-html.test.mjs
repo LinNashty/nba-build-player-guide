@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
 import test from "node:test";
 
 async function render() {
@@ -22,34 +23,34 @@ async function render() {
   );
 }
 
-test("server-renders the complete Chinese strategy guide", async () => {
+test("server-renders a fast, complete first viewport", async () => {
   const response = await render();
   assert.equal(response.status, 200);
   assert.match(response.headers.get("content-type") ?? "", /^text\/html\b/i);
 
   const html = await response.text();
+  assert.ok(Buffer.byteLength(html) < 100_000, "initial HTML should stay below 100 KB");
   assert.match(html, /<title>打造我的传奇球星｜全方位攻略<\/title>/i);
   assert.match(html, /生涯模式/);
   assert.match(html, /传奇模式/);
-  assert.match(html, /无冲突最优组合/);
-  assert.match(html, /随机到这支队，每项选谁/);
-  assert.match(html, /每个位置、每项属性前 40/);
-  assert.match(html, /剧情事件怎么选/);
-  assert.match(html, /选秀前置/);
-  assert.match(html, /队内位置适配前 5/);
-  assert.match(html, /形象声望到底影响什么/);
+  assert.match(html, /抽到谁，怎么选/);
+  assert.match(html, /正在载入完整攻略/);
+  assert.match(html, /查看最优组合/);
+  assert.doesNotMatch(html, /class="pick-card"/);
   assert.doesNotMatch(html, /codex-preview|Building your site|react-loading-skeleton/);
 });
 
-test("ships the required always-visible strategy surfaces", async () => {
-  const html = await (await render()).text();
-  assert.equal((html.match(/class="pick-card"/g) || []).length, 13);
-  assert.equal((html.match(/class="attribute-choice"/g) || []).length, 13);
-  assert.match(html, /class="choice-rank">1</);
-  assert.match(html, /class="grade"[^>]+aria-label="评级 [A-F]/);
-  assert.doesNotMatch(html, /class="status-dock"/);
-  assert.match(html, /class="alternatives"/);
-  assert.match(html, /class="ranking-columns"/);
-  assert.match(html, /class="story-directory"/);
-  assert.match(html, /class="tag-tabs title-tags"/);
+test("ships complete deferred strategy data", async () => {
+  const [careerData, legendData] = await Promise.all([
+    readFile(new URL("../public/data/guide-data.json", import.meta.url), "utf8").then(JSON.parse),
+    readFile(new URL("../public/data/legend-data.json", import.meta.url), "utf8").then(JSON.parse),
+  ]);
+  assert.equal(careerData.players.length, 525);
+  assert.equal(careerData.attrs.length, 13);
+  assert.equal(careerData.optimal.PG.length, 13);
+  assert.equal(Object.keys(careerData.rankings.PG).length, 13);
+  assert.equal(legendData.attrs.length, 13);
+  assert.equal(legendData.eras["2003"].playerCount, 442);
+  assert.equal(legendData.optimal["2003"].PG.length, 13);
+  assert.equal(Object.keys(legendData.rankings["2003"].PG).length, 13);
 });
