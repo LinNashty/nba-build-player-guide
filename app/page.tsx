@@ -5,7 +5,7 @@ import legendSummary from "./data/legend-summary.json";
 
 export const metadata: Metadata = {
   title: "打造我的传奇球星｜全方位攻略",
-  description: "生涯与传奇双模式，三时代队史球员、五位置最优组合、球队三备选、前40榜单与剧情判词。",
+  description: "新版传奇模式统一队史属性池、21个自由起始赛季、五位置择队模型、历史分公式与实时榜单。",
 };
 
 export default function Home() {

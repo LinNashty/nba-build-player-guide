@@ -33,7 +33,7 @@ test("server-renders a fast, complete first viewport", async () => {
   assert.match(html, /<title>打造我的传奇球星｜全方位攻略<\/title>/i);
   assert.match(html, /生涯模式/);
   assert.match(html, /传奇模式/);
-  assert.match(html, /抽到谁，怎么选/);
+  assert.match(html, /每一项属性，都选对/);
   assert.match(html, /正在载入完整攻略/);
   assert.match(html, /查看最优组合/);
   assert.doesNotMatch(html, /class="pick-card"/);
@@ -49,8 +49,23 @@ test("ships complete deferred strategy data", async () => {
   assert.equal(careerData.attrs.length, 13);
   assert.equal(careerData.optimal.PG.length, 13);
   assert.equal(Object.keys(careerData.rankings.PG).length, 13);
+  assert.equal(legendData.meta.playerCount, 457);
+  assert.equal(legendData.meta.teamCount, 30);
   assert.equal(legendData.attrs.length, 13);
-  assert.equal(legendData.eras["2003"].playerCount, 442);
-  assert.equal(legendData.optimal["2003"].PG.length, 13);
-  assert.equal(Object.keys(legendData.rankings["2003"].PG).length, 13);
+  assert.equal(legendData.optimal.PG.length, 13);
+  assert.equal(Object.keys(legendData.rankings.PG).length, 13);
+  assert.equal(legendData.rankings.PG.DNK[0].cname, "史蒂夫-弗朗西斯");
+  assert.equal(legendData.rankings.PG.DNK[0].value, 96);
+  const mcginnis = legendData.rankings.PG.REB.find((row) => row.cname === "乔治-麦金尼斯");
+  assert.equal(mcginnis?.value, 90);
+  assert.equal(mcginnis?.rank, 12);
+});
+
+test("ships all 21 start-season team models", async () => {
+  const seasonModel = await readFile(new URL("../public/data/season-model.json", import.meta.url), "utf8").then(JSON.parse);
+  assert.equal(seasonModel.meta.modelOvr, 97);
+  assert.equal(seasonModel.seasons.length, 21);
+  assert.equal(seasonModel.seasons[0], "1995-96");
+  assert.equal(seasonModel.seasons.at(-1), "2015-16");
+  assert.equal(seasonModel.data["2003-04"].positions.PG.length, seasonModel.data["2003-04"].teams.length);
 });
