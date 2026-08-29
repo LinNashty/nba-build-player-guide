@@ -456,7 +456,7 @@ footer a { padding:10px 12px; border:1px solid var(--line); border-radius:10px; 
 .quick-nav { grid-template-columns:repeat(auto-fit,minmax(78px,1fr)); }
 
 .season-guide-section { position:relative; }
-.season-control-panel { position:sticky; z-index:38; top:82px; margin-bottom:12px; padding:12px; border:1px solid var(--line-strong); border-radius:20px; background:rgba(12,16,22,.92); box-shadow:0 16px 48px rgba(0,0,0,.32); backdrop-filter:blur(22px) saturate(130%); }
+.season-control-panel { position:relative; z-index:2; margin-bottom:12px; padding:12px; border:1px solid var(--line-strong); border-radius:20px; background:rgba(12,16,22,.92); box-shadow:0 16px 48px rgba(0,0,0,.32); backdrop-filter:blur(22px) saturate(130%); }
 .season-current { display:grid; grid-template-columns:120px minmax(0,1fr) 120px; align-items:center; gap:10px; }
 .season-current > div { text-align:center; }
 .season-current span,.season-current strong,.season-current small { display:block; }
@@ -755,7 +755,7 @@ footer a { padding:10px 12px; border:1px solid var(--line); border-radius:10px; 
   .factor-panel header h3 { font-size:26px; }
   .season-points { grid-template-columns:1fr; padding:18px; }
   .season-points > div:last-child { grid-template-columns:1fr; }
-  .season-control-panel { top:67px; padding:8px; border-radius:16px; }
+  .season-control-panel { padding:8px; border-radius:16px; }
   .season-current { grid-template-columns:76px minmax(0,1fr) 76px; gap:5px; }
   .season-current button { min-height:42px; padding-inline:4px; font-size:9px; }
   .season-current strong { font-size:20px; }
