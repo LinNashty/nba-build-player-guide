@@ -20,25 +20,28 @@ interface ExecutionContext {
 }
 
 const SCORE_API = "https://ai-1785249273930-d3e9xdg7daff9ed-1252166086.tcloudbaseapp.com";
+const SCORE_CACHE_TTL = 3 * 60 * 1000;
+const scoreCache = new Map<string, { leaderboard: unknown[]; updatedAt: string; cachedAt: number }>();
 const SCORE_TEAMS = new Set([
   "ATL", "BOS", "BKN", "CHA", "CHI", "CLE", "DAL", "DEN", "DET", "GSW",
   "HOU", "IND", "LAC", "LAL", "MEM", "MIA", "MIL", "MIN", "NOP", "NYK",
   "OKC", "ORL", "PHI", "PHX", "POR", "SAC", "SAS", "TOR", "UTA", "WAS",
 ]);
 
-async function leaderboardResponse(request: Request, ctx: ExecutionContext): Promise<Response> {
+async function leaderboardResponse(request: Request): Promise<Response> {
   const url = new URL(request.url);
   const team = String(url.searchParams.get("team") || "").toUpperCase();
   if (team && !SCORE_TEAMS.has(team)) {
     return Response.json({ error: "未知球队" }, { status: 400 });
   }
-  const cacheKey = new Request(`${url.origin}/api/leaderboard${team ? `?team=${team}` : ""}`);
-  const cache = caches.default;
-  const cached = await cache.match(cacheKey);
-  if (cached) {
-    const cachedPayload = await cached.clone().json() as { updatedAt?: string };
-    const age = Date.now() - Date.parse(cachedPayload.updatedAt || "");
-    if (Number.isFinite(age) && age < 5 * 60 * 1000) return cached;
+  const cacheKey = team || "all";
+  const cached = scoreCache.get(cacheKey);
+  if (cached && Date.now() - cached.cachedAt < SCORE_CACHE_TTL) {
+    return Response.json({
+      leaderboard: cached.leaderboard, team: team || null, updatedAt: cached.updatedAt, stale: false,
+    }, {
+      headers: { "cache-control": "public, max-age=60", "x-content-type-options": "nosniff" },
+    });
   }
 
   const path = team
@@ -54,17 +57,19 @@ async function leaderboardResponse(request: Request, ctx: ExecutionContext): Pro
     const leaderboard = Array.isArray(payload.leaderboard)
       ? payload.leaderboard
       : (Array.isArray(payload.data?.leaderboard) ? payload.data?.leaderboard : []);
+    const updatedAt = new Date().toISOString();
+    scoreCache.set(cacheKey, { leaderboard, updatedAt, cachedAt: Date.now() });
     const response = Response.json({
-      leaderboard, team: team || null, updatedAt: new Date().toISOString(), stale: false,
+      leaderboard, team: team || null, updatedAt, stale: false,
     }, {
-      headers: { "cache-control": "public, max-age=120, s-maxage=86400", "x-content-type-options": "nosniff" },
+      headers: { "cache-control": "public, max-age=60", "x-content-type-options": "nosniff" },
     });
-    ctx.waitUntil(cache.put(cacheKey, response.clone()));
     return response;
   } catch {
     if (cached) {
-      const payload = await cached.json() as Record<string, unknown>;
-      return Response.json({ ...payload, stale: true }, {
+      return Response.json({
+        leaderboard: cached.leaderboard, team: team || null, updatedAt: cached.updatedAt, stale: true,
+      }, {
         headers: { "cache-control": "public, max-age=60", "x-content-type-options": "nosniff" },
       });
     }
@@ -83,7 +88,7 @@ const worker = {
     const url = new URL(request.url);
 
     if (url.pathname === "/api/leaderboard" && request.method === "GET") {
-      return leaderboardResponse(request, ctx);
+      return leaderboardResponse(request);
     }
 
     if (url.pathname === "/_vinext/image") {

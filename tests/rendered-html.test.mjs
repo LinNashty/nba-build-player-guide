@@ -69,3 +69,27 @@ test("ships all 21 start-season team models", async () => {
   assert.equal(seasonModel.seasons.at(-1), "2015-16");
   assert.equal(seasonModel.data["2003-04"].positions.PG.length, seasonModel.data["2003-04"].teams.length);
 });
+
+test("serves leaderboard data without relying on the platform cache API", async () => {
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async (input) => {
+    assert.match(String(input), /\/api\/score\/leaderboard\?limit=100$/);
+    return Response.json({ leaderboard: [{ historical_score: 999 }] });
+  };
+  try {
+    const workerUrl = new URL("../dist/server/index.js", import.meta.url);
+    workerUrl.searchParams.set("leaderboard-test", `${process.pid}-${Date.now()}`);
+    const { default: worker } = await import(workerUrl.href);
+    const response = await worker.fetch(
+      new Request("http://localhost/api/leaderboard"),
+      {},
+      { waitUntil() {}, passThroughOnException() {} },
+    );
+    assert.equal(response.status, 200);
+    const payload = await response.json();
+    assert.equal(payload.leaderboard[0].historical_score, 999);
+    assert.equal(payload.stale, false);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});

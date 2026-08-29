@@ -348,17 +348,62 @@ function LiveLeaderboard({ teamNames }: { teamNames: Record<string, string> }) {
   const [team, setTeam] = useState("LAL");
   const [onlineScore, setOnlineScore] = useState("");
   const [teamScore, setTeamScore] = useState("");
-  const [error, setError] = useState("");
+  const [onlineError, setOnlineError] = useState("");
+  const [teamError, setTeamError] = useState("");
   useEffect(() => {
-    fetch("/api/leaderboard").then((response) => { if (!response.ok) throw new Error("在线榜暂时无法连接"); return response.json(); }).then(setOnline).catch((reason) => setError(reason instanceof Error ? reason.message : "在线榜暂时无法连接"));
+    let active = true;
+    const load = async () => {
+      try {
+        const response = await fetch("/api/leaderboard", { cache: "no-store" });
+        if (!response.ok) throw new Error("在线榜暂时无法连接");
+        const payload = await response.json();
+        if (!active) return;
+        setOnline(payload);
+        setOnlineError("");
+        window.localStorage.setItem("legend-guide-online-board", JSON.stringify(payload));
+      } catch (reason) {
+        if (!active) return;
+        const cached = window.localStorage.getItem("legend-guide-online-board");
+        if (cached) {
+          try { setOnline({ ...JSON.parse(cached), stale: true }); } catch { /* 忽略损坏的本地缓存 */ }
+        }
+        setOnlineError(reason instanceof Error ? reason.message : "在线榜暂时无法连接");
+      }
+    };
+    load();
+    const timer = window.setInterval(load, 3 * 60 * 1000);
+    return () => { active = false; window.clearInterval(timer); };
   }, []);
   useEffect(() => {
-    fetch(`/api/leaderboard?team=${team}`).then((response) => { if (!response.ok) throw new Error("队史榜暂时无法连接"); return response.json(); }).then(setTeamBoard).catch((reason) => setError(reason instanceof Error ? reason.message : "队史榜暂时无法连接"));
+    let active = true;
+    const cacheKey = `legend-guide-team-board-${team}`;
+    const load = async () => {
+      try {
+        const response = await fetch(`/api/leaderboard?team=${team}`, { cache: "no-store" });
+        if (!response.ok) throw new Error("队史榜暂时无法连接");
+        const payload = await response.json();
+        if (!active) return;
+        setTeamBoard(payload);
+        setTeamError("");
+        window.localStorage.setItem(cacheKey, JSON.stringify(payload));
+      } catch (reason) {
+        if (!active) return;
+        const cached = window.localStorage.getItem(cacheKey);
+        if (cached) {
+          try { setTeamBoard({ ...JSON.parse(cached), stale: true }); } catch { /* 忽略损坏的本地缓存 */ }
+        }
+        setTeamError(reason instanceof Error ? reason.message : "队史榜暂时无法连接");
+      }
+    };
+    load();
+    const timer = window.setInterval(load, 3 * 60 * 1000);
+    return () => { active = false; window.clearInterval(timer); };
   }, [team]);
   const onlineRows = online?.leaderboard || [];
   const teamRows = teamBoard?.leaderboard || [];
+  const error = [onlineError, teamError].filter(Boolean).join("；");
   const updatedAt = online?.updatedAt ? new Date(online.updatedAt).toLocaleString("zh-CN", { hour12: false }) : "等待数据";
-  return <section id="live-board" className="section shell live-board-section"><SectionHeading index="08" title="现在多少分，才能真的上榜？" text="读取原游戏公开的在线榜与队史留名榜，只做只读展示。每3—5分钟刷新；接口异常时保留最近一次成功结果。" aside={<SourceBadge kind="实时数据" />} /><div className="live-status"><span className={error ? "status-error" : "status-live"} /> <strong>{error || "榜单已连接"}</strong><p>最近数据：{updatedAt}{online?.stale ? " · 当前为缓存结果" : ""}</p></div><div className="leaderboard-layout"><article><header><div><span>全服在线排行榜</span><h3>历史分门槛</h3></div><strong>{onlineRows.length ? leaderboardScore(onlineRows[0]) : "—"}<small>当前榜首</small></strong></header><div className="threshold-row">{[[9, "前10"], [49, "前50"], [99, "前100"]].map(([index, label]) => <div key={label}><span>{label}</span><strong>{thresholdAt(onlineRows, Number(index)) ?? "—"}</strong></div>)}</div><label>输入我的历史分<input inputMode="numeric" value={onlineScore} onChange={(event) => setOnlineScore(event.target.value.replace(/\D/g, ""))} placeholder="例如 900" /></label><p className="rank-estimate">{estimateRank(onlineRows, Number(onlineScore))}</p></article><article><header><div><span>球队队史留名榜</span><h3>{teamNames[team]}门槛</h3></div><select value={team} onChange={(event) => setTeam(event.target.value)}>{Object.entries(teamNames).map(([code, name]) => <option key={code} value={code}>{name}</option>)}</select></header><div className="threshold-row">{[[9, "前10"], [49, "前50"], [99, "前100"]].map(([index, label]) => <div key={label}><span>{label}</span><strong>{thresholdAt(teamRows, Number(index), true) ?? "—"}</strong></div>)}</div><label>输入我的队史分<input inputMode="numeric" value={teamScore} onChange={(event) => setTeamScore(event.target.value.replace(/\D/g, ""))} placeholder="例如 550" /></label><p className="rank-estimate">{estimateRank(teamRows, Number(teamScore), true)}</p></article></div><div className="leaderboard-privacy"><SourceBadge kind="实时数据" /><p>本站不读取登录状态，不提交或修改游戏数据。榜单门槛随玩家成绩变化，缓存只用于原接口临时故障时继续显示最近结果。</p></div></section>;
+  return <section id="live-board" className="section shell live-board-section"><SectionHeading index="08" title="现在多少分，才能真的上榜？" text="读取原游戏公开的在线榜与队史留名榜，只做只读展示。每3分钟自动刷新；接口异常时保留最近一次成功结果。" aside={<SourceBadge kind="实时数据" />} /><div className="live-status"><span className={error ? "status-error" : "status-live"} /> <strong>{error || "榜单已实时连接"}</strong><p>最近数据：{updatedAt}{online?.stale ? " · 当前为最近成功结果" : " · 每3分钟自动刷新"}</p></div><div className="leaderboard-layout"><article><header><div><span>全服在线排行榜</span><h3>历史分门槛</h3></div><strong>{onlineRows.length ? leaderboardScore(onlineRows[0]) : "—"}<small>当前榜首</small></strong></header><div className="threshold-row">{[[9, "前10"], [49, "前50"], [99, "前100"]].map(([index, label]) => <div key={label}><span>{label}</span><strong>{thresholdAt(onlineRows, Number(index)) ?? "—"}</strong></div>)}</div><label>输入我的历史分<input inputMode="numeric" value={onlineScore} onChange={(event) => setOnlineScore(event.target.value.replace(/\D/g, ""))} placeholder="例如 900" /></label><p className="rank-estimate">{estimateRank(onlineRows, Number(onlineScore))}</p></article><article><header><div><span>球队队史留名榜</span><h3>{teamNames[team]}门槛</h3></div><select value={team} onChange={(event) => setTeam(event.target.value)}>{Object.entries(teamNames).map(([code, name]) => <option key={code} value={code}>{name}</option>)}</select></header><div className="threshold-row">{[[9, "前10"], [49, "前50"], [99, "前100"]].map(([index, label]) => <div key={label}><span>{label}</span><strong>{thresholdAt(teamRows, Number(index), true) ?? "—"}</strong></div>)}</div><label>输入我的队史分<input inputMode="numeric" value={teamScore} onChange={(event) => setTeamScore(event.target.value.replace(/\D/g, ""))} placeholder="例如 550" /></label><p className="rank-estimate">{estimateRank(teamRows, Number(teamScore), true)}</p></article></div><div className="leaderboard-privacy"><SourceBadge kind="实时数据" /><p>本站不读取登录状态，不提交或修改游戏数据。榜单门槛随玩家成绩变化，最近成功结果只用于原接口临时故障时继续显示。</p></div></section>;
 }
 
 const PROFILE_CARDS = [
