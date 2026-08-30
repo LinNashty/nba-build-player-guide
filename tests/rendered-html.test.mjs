@@ -63,11 +63,19 @@ test("ships complete deferred strategy data", async () => {
 
 test("ships all 21 start-season team models", async () => {
   const seasonModel = await readFile(new URL("../public/data/season-model.json", import.meta.url), "utf8").then(JSON.parse);
-  assert.equal(seasonModel.meta.modelOvr, 97);
+  assert.deepEqual(seasonModel.meta.recruitmentNodes, [2, 6, 10, 14, 18]);
+  assert.equal(seasonModel.meta.modelOvrByPosition.PG, 98);
+  assert.equal(seasonModel.userProfiles.PG.boostedAttr, "IDEF");
+  assert.equal(seasonModel.userProfiles.PG.boostedTo, 99);
   assert.equal(seasonModel.seasons.length, 21);
   assert.equal(seasonModel.seasons[0], "1995-96");
   assert.equal(seasonModel.seasons.at(-1), "2015-16");
-  assert.equal(seasonModel.data["2003-04"].positions.PG.length, seasonModel.data["2003-04"].teams.length);
+  const seasonData = await readFile(new URL("../public/data/seasons/2003-04.json", import.meta.url), "utf8").then(JSON.parse);
+  assert.equal(seasonData.positions.PG.length, seasonData.teams.length);
+  const topTeam = seasonData.positions.PG[0];
+  assert.equal(topTeam.lineup.length, 5);
+  assert.equal(topTeam.recruitment.timeline.length, 5);
+  assert.equal(topTeam.recruitment.candidates.length, 6);
 });
 
 test("serves leaderboard data without relying on the platform cache API", async () => {

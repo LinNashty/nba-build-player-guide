@@ -443,7 +443,7 @@ footer a { padding:10px 12px; border:1px solid var(--line); border-radius:10px; 
 .legend-update-strip b { color:var(--amber); font-size:11px; }
 .legend-update-strip span { font-size:12px; font-weight:700; }
 .legend-update-strip i { color:var(--dim); font-style:normal; }
-.current-facts { grid-template-columns:repeat(4,minmax(0,1fr)); }
+.current-facts { grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); }
 .version-diff { display:grid; grid-template-columns:auto 1fr auto 1fr; align-items:center; gap:10px 16px; margin-top:10px; padding:16px 18px; border:1px solid var(--line); border-radius:16px; background:var(--surface-3); }
 .version-diff strong,.version-diff i { padding:6px 9px; border-radius:8px; font-size:10px; font-style:normal; }
 .version-diff strong { color:var(--muted); background:rgba(255,255,255,.05); }
@@ -540,6 +540,67 @@ footer a { padding:10px 12px; border:1px solid var(--line); border-radius:10px; 
 .season-picker-sheet > div { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:6px; }
 .season-picker-sheet > div button { min-height:48px; border:1px solid var(--line); border-radius:11px; background:var(--surface-3); font-size:11px; font-weight:700; }
 .season-picker-sheet > div button.active { color:var(--lime-ink); border-color:var(--lime); background:var(--lime); }
+
+/* 新版传奇择队：C 方案，以引援时间轴为主 */
+.season-team-card > header { grid-template-columns:38px 48px minmax(0,1fr) auto; }
+.team-card-status { min-width:138px; text-align:right; }
+.team-card-status span,.team-card-status strong { display:block; }
+.team-card-status span { color:var(--lime); font-size:9px; font-weight:800; }
+.team-card-status strong { margin-top:4px; color:var(--muted); font-size:11px; }
+.recruit-answer { display:flex; align-items:center; justify-content:space-between; gap:18px; margin:14px 20px 0; padding:17px 18px; border:1px solid rgba(102,217,239,.2); border-radius:17px; background:linear-gradient(110deg,rgba(102,217,239,.09),rgba(179,156,255,.055)); }
+.recruit-answer span { color:var(--cyan); font-size:9px; font-weight:800; letter-spacing:.08em; }
+.recruit-answer h4 { margin:5px 0 0; font-size:22px; letter-spacing:-.035em; }
+.recruit-answer em { flex:none; padding:8px 10px; border-radius:999px; color:var(--amber); background:rgba(246,199,91,.09); font-size:9px; font-style:normal; font-weight:800; }
+.recruit-timeline { position:relative; display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:7px; margin:12px 20px 0; }
+.recruit-timeline::before { position:absolute; z-index:0; top:18px; right:7%; left:7%; height:1px; content:""; background:var(--line-strong); }
+.recruit-timeline > div { position:relative; z-index:1; min-width:0; min-height:130px; padding:32px 11px 11px; border:1px solid var(--line); border-radius:14px; background:var(--surface-3); }
+.recruit-timeline > div::before { position:absolute; top:12px; left:12px; width:11px; height:11px; border:3px solid var(--dim); border-radius:50%; content:""; background:var(--surface-3); }
+.recruit-timeline > div.is-best { border-color:rgba(185,245,106,.3); background:rgba(185,245,106,.055); }
+.recruit-timeline > div.is-best::before { border-color:var(--lime); box-shadow:0 0 0 5px rgba(185,245,106,.08); }
+.recruit-timeline > div.is-wait strong { color:var(--amber); }
+.recruit-timeline span,.recruit-timeline strong,.recruit-timeline b,.recruit-timeline small { display:block; }
+.recruit-timeline span { color:var(--dim); font-size:8px; font-weight:800; }
+.recruit-timeline strong { margin-top:4px; color:var(--lime); font-size:13px; }
+.recruit-timeline b { margin-top:7px; overflow:hidden; font-size:10px; text-overflow:ellipsis; white-space:nowrap; }
+.recruit-timeline small { margin-top:5px; color:var(--muted); font-size:8px; line-height:1.45; }
+.recruit-timeline em { display:inline-block; margin-top:5px; color:var(--violet); font-size:7px; font-style:normal; }
+.team-core-grid { display:grid; grid-template-columns:minmax(0,1.1fr) minmax(320px,.9fr); gap:9px; margin:12px 20px 0; }
+.starter-five,.personal-awards { min-width:0; padding:14px; border:1px solid var(--line); border-radius:16px; background:var(--surface-3); }
+.starter-five > header,.personal-awards > header { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:10px; }
+.starter-five > header span,.personal-awards > header span { font-size:11px; font-weight:800; }
+.starter-five > header strong,.personal-awards > header strong { color:var(--dim); font-size:8px; }
+.starter-five > div { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:5px; }
+.starter-five > div > div { min-width:0; min-height:72px; padding:10px; border-radius:11px; background:rgba(255,255,255,.035); }
+.starter-five > div > div.is-user { background:rgba(185,245,106,.08); box-shadow:inset 0 0 0 1px rgba(185,245,106,.22); }
+.starter-five div strong,.starter-five div span,.starter-five div b { display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.starter-five div strong { font-size:10px; }
+.starter-five div span { margin-top:6px; color:var(--dim); font-size:8px; }
+.starter-five div b { margin-top:2px; color:var(--lime); font-size:15px; }
+.personal-awards > div { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:5px; }
+.personal-awards > div > div { min-width:0; padding:9px; border-radius:11px; background:rgba(255,255,255,.035); }
+.personal-awards div span,.personal-awards div strong,.personal-awards div small { display:block; }
+.personal-awards div span { min-height:24px; color:var(--dim); font-size:8px; line-height:1.4; }
+.personal-awards div strong { margin-top:3px; font-size:20px; font-variant-numeric:tabular-nums; }
+.personal-awards div small { margin-top:2px; color:var(--muted); font-size:8px; }
+.recruit-candidates { margin-top:13px; padding:15px 20px 19px; border-top:1px solid var(--line); }
+.recruit-candidates > header { display:flex; align-items:end; justify-content:space-between; gap:14px; margin-bottom:10px; }
+.recruit-candidates > header span { color:var(--dim); font-size:8px; font-weight:800; }
+.recruit-candidates > header h4 { margin:4px 0 0; font-size:17px; }
+.recruit-candidates > header > strong { color:var(--lime); font-size:10px; }
+.recruit-candidates > div { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:7px; }
+.recruit-candidates article { min-width:0; padding:12px; border:1px solid var(--line); border-radius:14px; background:var(--surface-3); }
+.recruit-candidates article.is-best { border-color:rgba(185,245,106,.38); background:rgba(185,245,106,.06); }
+.recruit-candidates article.is-risk { opacity:.72; }
+.recruit-candidates article > header { display:flex; align-items:start; justify-content:space-between; gap:8px; }
+.recruit-candidates article > header strong,.recruit-candidates article > header span { display:block; }
+.recruit-candidates article > header strong { overflow:hidden; font-size:13px; text-overflow:ellipsis; white-space:nowrap; }
+.recruit-candidates article > header span { margin-top:3px; color:var(--muted); font-size:8px; }
+.recruit-candidates article > header em { flex:none; padding:5px 6px; border-radius:7px; color:var(--lime); background:rgba(185,245,106,.08); font-size:7px; font-style:normal; font-weight:800; }
+.recruit-candidates article.is-risk > header em { color:var(--danger); background:rgba(255,123,123,.08); }
+.recruit-candidates article > div { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:5px; margin-top:9px; }
+.recruit-candidates article > div > span { min-width:0; padding:7px; border-radius:9px; color:var(--dim); background:rgba(255,255,255,.03); font-size:7px; }
+.recruit-candidates article > div b { display:block; margin-top:2px; color:var(--text); font-size:13px; }
+.recruit-candidates article > div small { color:var(--muted); font-size:7px; }
 
 .award-formula-list { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:9px; }
 .award-formula-list article { min-height:220px; padding:22px; border:1px solid var(--line); border-radius:20px; background:var(--surface); }
@@ -784,6 +845,33 @@ footer a { padding:10px 12px; border:1px solid var(--line); border-radius:10px; 
   .rotation-list { grid-template-columns:repeat(2,minmax(0,1fr)); margin:9px 14px 0; }
   .rotation-list > div { min-height:70px; }
   .team-verdict { grid-template-columns:1fr; padding:13px 14px 15px; }
+  .team-card-status { min-width:0; grid-column:1/-1; padding-top:9px; border-top:1px solid var(--line); text-align:left; }
+  .recruit-answer { display:block; margin:10px 14px 0; padding:14px; }
+  .recruit-answer h4 { font-size:19px; line-height:1.3; }
+  .recruit-answer em { display:inline-block; margin-top:10px; }
+  .recruit-timeline { grid-template-columns:1fr; gap:6px; margin:10px 14px 0; }
+  .recruit-timeline::before { top:17px; bottom:17px; left:17px; width:1px; height:auto; }
+  .recruit-timeline > div { min-height:0; padding:11px 11px 11px 38px; }
+  .recruit-timeline > div::before { top:14px; left:11px; }
+  .recruit-timeline span { font-size:9px; }
+  .recruit-timeline strong { font-size:14px; }
+  .recruit-timeline b { white-space:normal; }
+  .team-core-grid { grid-template-columns:1fr; margin:10px 14px 0; }
+  .starter-five,.personal-awards { padding:12px; }
+  .starter-five > div { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .starter-five > div > div:last-child { grid-column:1/-1; }
+  .starter-five div strong { font-size:12px; }
+  .starter-five div b { font-size:18px; }
+  .personal-awards > div { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .personal-awards div span { min-height:0; font-size:9px; }
+  .personal-awards div strong { font-size:22px; }
+  .recruit-candidates { padding:14px; }
+  .recruit-candidates > header { display:block; }
+  .recruit-candidates > header > strong { display:block; margin-top:7px; }
+  .recruit-candidates > div { grid-template-columns:1fr; }
+  .recruit-candidates article { padding:13px; }
+  .recruit-candidates article > header strong { font-size:14px; }
+  .recruit-candidates article > div b { font-size:15px; }
   .season-picker-backdrop { padding:8px; }
   .season-picker-sheet { max-height:82dvh; overflow:auto; padding:14px; border-radius:21px; }
   .season-picker-sheet > div button { min-height:45px; }

@@ -125,7 +125,7 @@ function HeroCurrent({ mode, setMode, careerSummary, legendSummary }: any) {
     <div className="shell hero-inner">
       <div className="source-pill">最新核验 · {cnDate(legendSummary.meta.extractedAt)}</div>
       <h1>{isLegend ? <>选对属性，也要选对<br /><span>你的整个时代。</span></> : <>每一项属性，都选对<br /><span>那一个人。</span></>}</h1>
-      <p className="hero-copy">{isLegend ? "先用统一队史池打造球员，再从 21 个起始赛季中找到最容易冲高历史分的球队。" : "先锁定球场位置，再查现役球员的实得值、无冲突组合、球队备选和剧情加点。"}</p>
+      <p className="hero-copy">{isLegend ? "统一队史池建球、最低属性特训、自由选年代，再把管理层引援用在最值的赛季。" : "先锁定球场位置，再查现役球员的实得值、无冲突组合、球队备选和剧情加点。"}</p>
       <div className="mode-selector" aria-label="选择游戏模式">
         <button className={mode === "career" ? "active career" : "career"} onClick={() => setMode("career")}>
           <span>生涯模式</span><strong>{careerSummary.meta.playerCount} 名现役球员</strong><p>当前阵容 · 普通跨位置衰减</p>
@@ -134,13 +134,13 @@ function HeroCurrent({ mode, setMode, careerSummary, legendSummary }: any) {
           <span>新版传奇模式</span><strong>统一队史池 · 自选年代</strong><p>30 队历史阵容夺属性，1995-96 至 2015-16 开生涯</p>
         </button>
       </div>
-      {isLegend && <div className="legend-update-strip"><b>这次更新最关键的变化</b><span>夺属性不再分三个年代</span><i>→</i><span>建完球后再选起始赛季</span><i>→</i><span>赛季真实阵容决定争冠与奖项环境</span></div>}
+      {isLegend && <div className="legend-update-strip"><b>新版完整流程</b><span>统一队史池建球</span><i>→</i><span>最低属性固定 +20</span><i>→</i><span>自由选择起始赛季</span><i>→</i><span>休赛期六选一引援</span></div>}
       <div className="hero-actions"><a className="button primary" href={isLegend ? "#season-guide" : "#optimal"}>{isLegend ? "查看赛季择队" : "查看最优组合"}</a><a className="button ghost" href="#rankings">查看属性榜</a></div>
       <div className="hero-proof">
         <div><strong>{isLegend ? legendSummary.meta.playerCount : careerSummary.meta.playerCount}</strong><span>{isLegend ? "统一队史候选" : "现役确定性球员"}</span></div>
         <div><strong>{isLegend ? "21" : "5 × 13"}</strong><span>{isLegend ? "自由起始赛季" : "位置属性榜"}</span></div>
         <div><strong>1—40</strong><span>完整属性排行</span></div>
-        <div><strong>{isLegend ? "3150" : careerSummary.eventCounts.staged}</strong><span>{isLegend ? "赛季球队模型卡" : "条分阶段剧情"}</span></div>
+        <div><strong>{isLegend ? "3150" : careerSummary.eventCounts.staged}</strong><span>{isLegend ? "球队与引援决策卡" : "条分阶段剧情"}</span></div>
       </div>
     </div>
   </header>;
@@ -153,14 +153,15 @@ function DataLoading({ error, onRetry }: { error: string; onRetry: () => void })
 function LegendOverviewCurrent({ legendData }: any) {
   const facts = [
     ["01", "先用统一队史池夺属性", `所有开局都从同一套 30 队、${legendData.meta.playerCount} 名队史候选中选人，起始赛季不会改变球员数值。`],
-    ["02", "建球后再抽起始赛季", "可用范围是 1995-96 至 2015-16。随机可以覆盖全部 21 季；看视频自选时，每次从随机出现的 9 季里选 1 季。"],
-    ["03", "赛季决定真实阵容", "选定年代后，球队名单、同位置竞争、联盟强弱和奖项对手全部切到该赛季。"],
-    ["04", "跨位置衰减仍然更轻", "传奇模式只承受普通模式 30% 的跨位置损失；大个子给后卫拿篮板、力量依然更香。"],
+    ["02", "最低属性可以特训", "揭幕时自动找到13项里的最低值，观看广告后固定加20、最高99；并列最低按游戏属性顺序取最靠前的一项。"],
+    ["03", "建球后再选起始赛季", "可用范围是1995-96至2015-16。赛季决定球队名单、位置竞争、联盟强弱和奖项对手。"],
+    ["04", "首季结束开放管理层引援", "候选是本队之外、按球员身份去重后的联盟综评前6。接受后只能使用一次，并送走本队当前最高顺位的非用户替补。"],
+    ["05", "拒绝不会永远错过", "可用节点是第二、第六、第十、第十四、第十八赛季开始前；拒绝后隔三个完整赛季再问，接受后后续节点全部消失。"],
   ];
   return <section id="overview" className="section shell overview-section">
-    <SectionHeading index="00" title="新版传奇模式，一分钟看懂" text="一句话：夺属性看统一队史池，跑生涯看你抽到的真实赛季。两件事已经完全分开。" aside={<span className="verified-chip">游戏公式 · 最新版本</span>} />
+    <SectionHeading index="00" title="新版传奇模式，一分钟看懂" text="一句话：先把球员建到极限，再把球队和引援节点选对；两步共同决定你的累计历史分。" aside={<span className="verified-chip">游戏公式 · 最新版本</span>} />
     <div className="fact-grid current-facts">{facts.map(([n, title, text]) => <article key={n}><span>{n}</span><h3>{title}</h3><p>{text}</p></article>)}</div>
-    <div className="version-diff"><strong>旧版</strong><span>1984／1996／2003 分别限制可出现球队</span><i>现在</i><span>30 队统一属性池，21 个赛季只负责生涯环境</span></div>
+    <div className="version-diff"><strong>建球后</strong><span>最低属性 +20，最高封顶99</span><i>首季后</i><span>联盟综评前6六选一；点“继续寻找”就会消耗整条引援线，关闭名单也不会重来</span></div>
     <div className="example-strip"><span>核验例子</span><p><b>控卫 · 扣篮：</b>史蒂夫·弗朗西斯 96，统一池第 1</p><p><b>控卫 · 篮板：</b>步行者乔治·麦金尼斯 90，并列第 12</p></div>
   </section>;
 }
@@ -247,40 +248,48 @@ function SourceBadge({ kind }: { kind: "游戏公式" | "模型估算" | "实时
 }
 
 function SeasonTeamCard({ item, position }: { item: any; position: Position }) {
-  const powerLabels: Record<string, string> = { offense: "进攻", defense: "防守", athletic: "运动", clutch: "关键", depth: "深度" };
-  const risk = item.positionRival && item.positionRival.ovr >= 92
-    ? `同位置有 ${item.positionRival.name}（${item.positionRival.ovr}），首发与球权竞争更明显。`
-    : item.mvpDifficulty === "极难"
-      ? `联盟最强MVP对手是${item.mvpRival}，更适合先冲冠军与最佳阵容。`
-      : `阵容没有致命位置冲突，但后续交易、伤病与成长仍会改变结果。`;
-  const reason = `${item.isUserStarter ? "约97综评可直接进入首发" : "约97综评仍可能从第六人起步"}；模型胜率提升 ${item.winGain >= 0 ? "+" : ""}${item.winGain}%，预计${item.seed <= 8 ? `分区第 ${item.seed}` : "处于季后赛边缘"}。`;
+  const plan = item.recruitment;
+  const answer = plan.bestAction === "立即引援"
+    ? `开局选${item.teamName}，第${plan.bestSeason}赛季引进${plan.bestPlayer}`
+    : `开局选${item.teamName}，这局优先保住个人奖项，暂不使用引援`;
+  const delta = (value: number) => value > 0 ? `+${value}` : String(value);
   return <article className="season-team-card">
     <header>
       <span className={`team-rank rank-${item.rank}`}>{item.rank}</span>
       <TeamMark team={item.team} name={item.teamName} large />
-      <div><h3>{item.teamName}</h3><p>{POSITION_NAMES[position]} · {item.isUserStarter ? "预计首发" : "预计第六人"}</p></div>
-      <div className="legacy-projection"><small>预计生涯历史分</small><strong>{item.projectedLegacy.mid}</strong><span>{item.projectedLegacy.low}—{item.projectedLegacy.high}</span></div>
+      <div><h3>{item.teamName}</h3><p>{POSITION_NAMES[position]} · 无冲突最优建球 · 特训后综评 {item.modelOvr}</p></div>
+      <div className="team-card-status"><span>{item.tags[0] || "完整联盟"}</span><strong>{item.isUserStarter ? "预计首发" : "预计第六人"}</strong></div>
     </header>
-    <div className="recommend-tags">{item.tags.map((tag: string) => <span key={tag}>{tag}</span>)}<SourceBadge kind="模型估算" /></div>
-    <div className="season-metrics">
-      <div><span>常规赛胜率</span><strong>{item.winPct}%</strong><small>提升 {item.winGain >= 0 ? "+" : ""}{item.winGain}%</small></div>
-      <div><span>季后赛概率</span><strong>{item.playoffPct}%</strong><small>预计分区第 {item.seed}</small></div>
-      <div><span>夺冠率</span><strong>{item.titlePct}%</strong><small>七场系列赛模型</small></div>
-      <div><span>MVP概率</span><strong>{item.mvpPct}%</strong><small>{item.mvpDifficulty}</small></div>
-      <div><span>FMVP主导率</span><strong>{item.fmvpPct}%</strong><small>{item.fmvpDifficulty}</small></div>
-      <div><span>DPOY概率</span><strong>{item.dpoyPct}%</strong><small>{item.dpoyDifficulty}</small></div>
+    <div className="recruit-answer">
+      <div><span>一句话答案</span><h4>{answer}</h4></div>
+      <em>{plan.bestAction === "立即引援" ? `第${plan.bestSeason}赛季出手` : "保留个人奖项"}</em>
     </div>
-    <div className="team-model-detail">
-      <div className="power-list">{Object.entries(item.power).map(([key, value]: any) => <div key={key}><span>{powerLabels[key]}</span><i><b style={{ width: `${Math.max(0, Math.min(100, value))}%` }} /></i><strong>{value}</strong></div>)}</div>
-      <div className="competition-score"><SourceBadge kind="游戏公式" /><span>MVP竞争分</span><strong>{item.mvpScore}</strong><small>比当前最强对手 {item.mvpGap >= 0 ? "+" : ""}{item.mvpGap}</small><p>{item.mvpRival}</p></div>
+    <div className="recruit-timeline" aria-label="引援节点">
+      {plan.timeline.map((node: any) => <div className={`${node.isBest ? "is-best" : ""} ${node.action === "继续等待" ? "is-wait" : ""}`} key={node.season}>
+        <span>第{node.season}赛季</span>
+        <strong>{node.action}</strong>
+        <b>{node.player} · {node.position} · {node.ovr || "—"}</b>
+        <small>MVP {node.mvpPct}% · 防守奖 {node.dpoyPct}% · 总决赛奖 {node.fmvpPct}% · 最佳阵容 {node.allNbaPct}%</small>
+        {node.projected && <em>未来名单估算</em>}
+      </div>)}
     </div>
-    <div className="rotation-list"><h4>加入你之后的首发与核心轮换</h4>{item.lineup.map((player: any, index: number) => <div className={player.isUser ? "is-user" : ""} key={`${player.name}-${index}`}><span>{player.role}</span><strong>{player.name}</strong><small>{player.position} · {player.ovr}</small>{player.positionCompetition && <em>位置竞争</em>}</div>)}</div>
-    <div className="team-verdict"><p><b>为什么选：</b>{reason}</p><p><b>主要风险：</b>{risk}</p></div>
+    <div className="team-core-grid">
+      <section className="starter-five"><header><span>开局首发五人</span><strong>姓名 · 位置 · 综合分</strong></header><div>{item.lineup.map((player: any, index: number) => <div className={player.isUser ? "is-user" : ""} key={`${player.name}-${index}`}><strong>{player.name}</strong><span>{player.position}</span><b>{player.ovr}</b></div>)}</div></section>
+      <section className="personal-awards"><header><span>开局个人奖项概率</span><strong>只保留历史分相关指标</strong></header><div><div><span>最有价值球员</span><strong>{item.mvpPct}%</strong><small>{item.mvpDifficulty}</small></div><div><span>最佳防守球员</span><strong>{item.dpoyPct}%</strong><small>{item.dpoyDifficulty}</small></div><div><span>总决赛最有价值球员</span><strong>{item.fmvpPct}%</strong><small>{item.fmvpDifficulty}</small></div><div><span>最佳阵容</span><strong>{item.allNbaPct}%</strong><small>模型概率</small></div></div></section>
+    </div>
+    <section className="recruit-candidates">
+      <header><div><span>最佳节点 · 第{plan.bestSeason}赛季</span><h4>管理层给出的六名候选</h4></div><strong>{plan.bestAction === "立即引援" ? `${plan.bestPlayer} · 历史分最优` : "没有安全答案，建议继续等待"}</strong></header>
+      <div>{plan.candidates.map((player: any) => <article className={`${player.isBest ? "is-best" : ""} ${!player.safe ? "is-risk" : ""}`} key={`${player.key}-${player.team}`}>
+        <header><div><strong>{player.name}</strong><span>{player.position} · 综评 {player.ovr}</span></div><em>{player.isBest ? "历史分最优" : player.safe ? "奖项安全" : "奖项超线"}</em></header>
+        <div><span>最有价值球员 <b>{player.mvpPct}%</b><small>{delta(player.deltaMvp)}%</small></span><span>最佳防守球员 <b>{player.dpoyPct}%</b><small>{delta(player.deltaDpoy)}%</small></span><span>总决赛最有价值球员 <b>{player.fmvpPct}%</b><small>{delta(player.deltaFmvp)}%</small></span><span>最佳阵容 <b>{player.allNbaPct}%</b><small>{delta(player.deltaAllNba)}%</small></span></div>
+      </article>)}</div>
+    </section>
   </article>;
 }
 
 function LegendSeasonGuide({ position }: { position: Position }) {
   const [model, setModel] = useState<any>(null);
+  const [seasonCache, setSeasonCache] = useState<Record<string, any>>({});
   const [error, setError] = useState("");
   const [season, setSeason] = useState("2003-04");
   const [showAll, setShowAll] = useState(false);
@@ -293,21 +302,33 @@ function LegendSeasonGuide({ position }: { position: Position }) {
     }).then(setModel).catch((reason) => { if (!controller.signal.aborted) setError(reason instanceof Error ? reason.message : "赛季模型暂时没有载入"); });
     return () => controller.abort();
   }, []);
+  useEffect(() => {
+    if (!model) return;
+    if (seasonCache[season]) return;
+    const controller = new AbortController();
+    const url = model.seasonFiles?.[season] || `/data/seasons/${season}.json`;
+    fetch(url, { signal: controller.signal }).then((response) => {
+      if (!response.ok) throw new Error("当前赛季数据暂时没有载入");
+      return response.json();
+    }).then((payload) => { setError(""); setSeasonCache((current) => ({ ...current, [season]: payload })); }).catch((reason) => { if (!controller.signal.aborted) setError(reason instanceof Error ? reason.message : "当前赛季数据暂时没有载入"); });
+    return () => controller.abort();
+  }, [model, season, seasonCache]);
+  const seasonData = seasonCache[season] || null;
   const seasonIndex = LEGEND_SEASONS.indexOf(season);
-  const rows = model?.data?.[season]?.positions?.[position] || [];
+  const rows = seasonData?.positions?.[position] || [];
   const visible = showAll ? rows : rows.slice(0, 5);
-  const selectSeason = (value: string) => { setSeason(value); setShowAll(false); setPickerOpen(false); };
+  const selectSeason = (value: string) => { setError(""); setSeason(value); setShowAll(false); setPickerOpen(false); };
   return <section id="season-guide" className="section shell season-guide-section">
-    <SectionHeading index="04" title="这个年代，去哪个队最容易冲高历史分？" text="先选位置，再选起始赛季。每支球队都按约97综评、符合该位置真实属性结构的自建球员重新排首发并计算。" aside={<SourceBadge kind="模型估算" />} />
+    <SectionHeading index="04" title="这个年代，开局选哪队、引援何时用？" text="先选位置和起始赛季。球队按累计历史分重新排序，每张卡直接给出开局首发、五个引援节点和最佳节点六人名单。" aside={<SourceBadge kind="模型估算" />} />
     <div className="season-control-panel">
-      <div className="season-current"><button disabled={seasonIndex <= 0} onClick={() => selectSeason(LEGEND_SEASONS[seasonIndex - 1])}>上一赛季</button><div><span>当前起始赛季</span><strong>{season}</strong><small>{POSITION_NAMES[position]} · 优先按预计生涯总历史分排序</small></div><button disabled={seasonIndex >= LEGEND_SEASONS.length - 1} onClick={() => selectSeason(LEGEND_SEASONS[seasonIndex + 1])}>下一赛季</button></div>
+      <div className="season-current"><button disabled={seasonIndex <= 0} onClick={() => selectSeason(LEGEND_SEASONS[seasonIndex - 1])}>上一赛季</button><div><span>当前起始赛季</span><strong>{season}</strong><small>{POSITION_NAMES[position]} · 只按累计历史分最优排序</small></div><button disabled={seasonIndex >= LEGEND_SEASONS.length - 1} onClick={() => selectSeason(LEGEND_SEASONS[seasonIndex + 1])}>下一赛季</button></div>
       <button className="mobile-season-trigger" onClick={() => setPickerOpen(true)}>选择其他赛季</button>
       <div className="season-grid" aria-label="选择起始赛季">{LEGEND_SEASONS.map((value) => <button key={value} className={season === value ? "active" : ""} onClick={() => selectSeason(value)}>{value}</button>)}</div>
     </div>
-    <div className="model-note"><SourceBadge kind="游戏公式" /><p>首发五人占球队模型 85%，两名核心轮换占 15%；单场胜率按进攻差×40%＋防守差×40%＋深度差×20%计算，并限制在 15%—85%。</p><details><summary>查看估算边界</summary><span>季后赛、夺冠率与生涯历史分是在固定起始阵容上做的概率投影，无法预知后续交易、选秀、伤病、成长与剧情随机数。</span></details></div>
-    {!model && !error && <div className="season-loading">正在载入 21 个赛季的球队模型……</div>}
+    <div className="model-note"><SourceBadge kind="游戏公式" /><p>建球使用本站无冲突最优组合，并自动把最低属性加20、最高99。引援安全线：最有价值球员／总决赛最有价值球员／最佳阵容最多下降5个百分点，最佳防守球员最多下降3个百分点。</p><details><summary>查看估算边界</summary><span>候选名单会在游戏中先经过随机交易、选秀、成长和伤病。本站按相应赛季联盟综评前六建模；实际名单不同，就照同一安全线选择，关闭六人名单不会返还引援机会。</span></details></div>
+    {(!model || !seasonData) && !error && <div className="season-loading">正在载入 {season} 球队与引援模型……</div>}
     {error && <div className="season-loading error">{error}，请刷新页面重试。</div>}
-    {model && <><div className="season-guide-head"><div><strong>{season} · {POSITION_NAMES[position]}</strong><span>先看最推荐的 5 队</span></div><p>共 {rows.length} 支可选球队 · 当前展示 {visible.length} 支</p></div><div className="season-team-list">{visible.map((item: any) => <SeasonTeamCard key={item.team} item={item} position={position} />)}</div>{rows.length > 5 && <button className="show-all-teams" onClick={() => setShowAll((value) => !value)}>{showAll ? "收起，只看前 5 队" : `展开查看 ${season} 全部 ${rows.length} 支球队`}</button>}</>}
+    {seasonData && <><div className="season-guide-head"><div><strong>{season} · {POSITION_NAMES[position]}</strong><span>先看累计历史分最优的 5 队</span></div><p>共 {rows.length} 支可选球队 · 当前展示 {visible.length} 支</p></div><div className="season-team-list">{visible.map((item: any) => <SeasonTeamCard key={item.team} item={item} position={position} />)}</div>{rows.length > 5 && <button className="show-all-teams" onClick={() => setShowAll((value) => !value)}>{showAll ? "收起，只看前 5 队" : `查看 ${season} 完整联盟（${rows.length} 队）`}</button>}</>}
     {pickerOpen && <div className="season-picker-backdrop"><button className="backdrop-dismiss" aria-label="关闭赛季选择" onClick={() => setPickerOpen(false)} /><aside className="season-picker-sheet"><header><div><span>选择起始赛季</span><strong>1995-96 至 2015-16</strong></div><button onClick={() => setPickerOpen(false)}>关闭</button></header><div>{LEGEND_SEASONS.map((value) => <button key={value} className={season === value ? "active" : ""} onClick={() => selectSeason(value)}>{value}</button>)}</div></aside></div>}
   </section>;
 }
@@ -450,7 +471,7 @@ function TitleLibrary({ data }: { data: any }) {
 }
 
 function DataSectionCurrent({ careerData, legendData }: any) {
-  return <section id="data" className="section shell"><SectionHeading index="12" title={`数据快照 · ${cnDate(legendData.meta.extractedAt)}`} text="固定球员值与规则来自当前游戏脚本；胜率与生涯收益另行标注为模型估算；实时榜单只读取原游戏公开接口。" /><div className="data-grid"><article><span>生涯模式</span><h3>{careerData.meta.playerCount} 人</h3><p>30队确定性现役球员；随机生成新秀不混进静态属性榜。</p></article><article><span>传奇夺取池</span><h3>{legendData.meta.playerCount} 人</h3><p>30队统一队史池，不再按起始年代删减球队或球员。</p></article><article><span>自由起始赛季</span><h3>21 季</h3><p>1995-96至2015-16；每季逐队展示阵容和五位置模型。</p></article><article><span>完整模型</span><h3>3150 卡</h3><p>21赛季×5位置×每季完整球队，统一按约97综评计算。</p></article></div><div className="data-notes"><div><span>游戏公式</span><p>属性衰减、球队五项实力、单场胜率、MVP／最佳阵容／DPOY／FMVP分数与最终历史分。</p></div><div><span>模型估算</span><p>常规赛预计胜率、季后赛概率、夺冠率、获奖概率与生涯历史分区间。</p></div><div><span>实时数据</span><p>在线排行榜与30支球队队史榜门槛；每3—5分钟更新并保留最近成功结果。</p></div><div><span>最重要的边界</span><p>起始阵容能够核验，但后续交易、选秀、伤病、成长与剧情随机数无法提前确定。</p></div></div></section>;
+  return <section id="data" className="section shell"><SectionHeading index="12" title={`数据快照 · ${cnDate(legendData.meta.extractedAt)}`} text="固定球员值、最低属性特训和管理层引援触发条件来自当前游戏脚本；未来候选与获奖概率单独标注为模型估算。" /><div className="data-grid"><article><span>生涯模式</span><h3>{careerData.meta.playerCount} 人</h3><p>30队确定性现役球员；随机生成新秀不混进静态属性榜。</p></article><article><span>传奇夺取池</span><h3>{legendData.meta.playerCount} 人</h3><p>30队统一队史池，不再按起始年代删减球队或球员。</p></article><article><span>自由起始赛季</span><h3>21 季</h3><p>1995-96至2015-16；每季逐队展示首发和五位置推荐。</p></article><article><span>完整决策模型</span><h3>3150 卡</h3><p>无冲突最优建球＋最低项加20，再比较五个管理层引援节点。</p></article></div><div className="data-notes"><div><span>游戏公式</span><p>跨位置衰减、最低属性加20、引援六人生成、奖项评分与最终历史分。</p></div><div><span>模型估算</span><p>逐队个人奖项概率、五个引援节点与联盟综评前六候选的历史分收益。</p></div><div><span>实时数据</span><p>在线排行榜与30支球队队史榜门槛；每3—5分钟更新并保留最近成功结果。</p></div><div><span>最重要的边界</span><p>游戏会先执行随机交易、选秀、伤病与成长，实际六人名单可能与静态模型不同；届时按同一奖项安全线选择。</p></div></div></section>;
 }
 
 export default function GuideApp({ careerSummary, legendSummary }: { careerSummary: any; legendSummary: any }) {

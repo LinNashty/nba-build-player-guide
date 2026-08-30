@@ -18,6 +18,7 @@ SEASON_SOURCE = Path("/tmp/hupu-26826-15.js")
 GUIDE = ROOT / "app/data/guide-data.json"
 LEGEND = ROOT / "app/data/legend-data.json"
 OUTPUT = ROOT / "public/data/season-model.json"
+SEASON_OUTPUT = ROOT / "public/data/seasons"
 POSITIONS = ["PG", "SG", "SF", "PF", "C"]
 ATTRS = ["threePT", "MID", "FIN", "DNK", "HAN", "PAS", "PDEF", "IDEF", "BLK", "REB", "ATH", "STR", "CLU"]
 POS_ORDER = ["PG", "SG", "SF", "PF", "C"]
@@ -221,23 +222,20 @@ def final_score(stats: dict) -> float:
     return stats["pts"] + stats["reb"] * .75 + stats["ast"] * 1.05 + (stats["stl"] + stats["blk"]) * 1.8 - stats["tov"]
 
 
-def calibrate_attrs(position: str, legend: dict) -> dict:
+def build_user_profile(position: str, legend: dict) -> dict:
     weights = legend["positions"][position]["weights"]
     values = {pick["attr"]: int(pick["selected"]["value"]) for pick in legend["optimal"][position]}
-    current = sum(values[key] * weights[key] for key in ATTRS)
-    shift = 97 - current
-    values = {key: int(round(clamp(35, value + shift, 99))) for key, value in values.items()}
-    for _ in range(50):
-        overall = round(sum(values[key] * weights[key] for key in ATTRS))
-        if overall == 97:
-            break
-        direction = 1 if overall < 97 else -1
-        for key in sorted(ATTRS, key=lambda item: -weights[item]):
-            next_value = values[key] + direction
-            if 35 <= next_value <= 99:
-                values[key] = next_value
-                break
-    return values
+    lowest_key = min(ATTRS, key=lambda key: (values[key], ATTRS.index(key)))
+    before = values[lowest_key]
+    values[lowest_key] = min(before + 20, 99)
+    overall = round(sum(values[key] * weights[key] for key in ATTRS))
+    return {
+        "attrs": values,
+        "ovr": overall,
+        "boostedAttr": lowest_key,
+        "boostedFrom": before,
+        "boostedTo": values[lowest_key],
+    }
 
 
 def historical_team_name(team: str, season: str, base: dict) -> str:
@@ -273,117 +271,253 @@ def main() -> None:
     guide = json.loads(GUIDE.read_text(encoding="utf-8"))
     legend = json.loads(LEGEND.read_text(encoding="utf-8"))
     selected_seasons = [f"{year}-{str((year + 1) % 100).zfill(2)}" for year in range(1995, 2016)]
-    user_attrs = {position: calibrate_attrs(position, legend) for position in POSITIONS}
+    user_profiles = {position: build_user_profile(position, legend) for position in POSITIONS}
     output_seasons: dict = {}
+    available_seasons = sorted(data["seasons"], key=lambda value: int(value[:4]))
+    context_cache: dict = {}
+    evaluation_cache: dict = {}
+    recruitment_cache: dict = {}
+    recruitment_nodes = [2, 6, 10, 14, 18]
 
-    for season in selected_seasons:
+    def player_key(player: dict) -> str:
+        return str(player.get("id") or player.get("name") or player.get("cname") or "").lower().strip()
+
+    def build_context(season: str) -> dict:
+        if season in context_cache:
+            return context_cache[season]
         bundle = data["seasons"][season]
-        teams = bundle["teams"]
+        teams = list(bundle["teams"])
         rosters = {team: [dict(player, team=team) for player in bundle["rosters"][team]] for team in teams}
         baseline_lineups = {team: best_lineup(rosters[team]) for team in teams}
         baseline_powers = {team: team_power(baseline_lineups[team]) for team in teams}
-        baseline_win = {team: sum(game_probability(baseline_powers[team], baseline_powers[opp]) for opp in teams if opp != team) / (len(teams) - 1) for team in teams}
+        baseline_win = {
+            team: sum(game_probability(baseline_powers[team], baseline_powers[opp]) for opp in teams if opp != team) / max(1, len(teams) - 1)
+            for team in teams
+        }
         overall_order = sorted(teams, key=lambda team: -baseline_win[team])
         overall_rank = {team: index + 1 for index, team in enumerate(overall_order)}
         max_gp = max(float(player.get("gp", 82) or 82) for roster in rosters.values() for player in roster)
-
         rival_rows = []
-        for team, roster in rosters.items():
+        rival_by_key = {}
+        for code, roster in rosters.items():
             for player in roster:
                 games = float(player.get("gp", max_gp) or max_gp) / max_gp * 82
                 stats = {key: float(player.get(key, 0) or 0) for key in ["pts", "reb", "ast", "stl", "blk"]}
                 stats["tov"] = float(player.get("tov", 2) or 2)
                 stats["min"] = float(player.get("min", 28) or 28)
-                rival_rows.append({
-                    "player": player, "team": team, "group": "G" if player.get("pos") in ("PG", "SG") else ("C" if player.get("pos") == "C" else "F"),
-                    "mvp": mvp_score(stats, baseline_win[team], float(player.get("ovr", 70) or 70), games),
-                    "allnba": all_nba_score(stats, baseline_win[team], float(player.get("ovr", 70) or 70)),
-                    "dpoy": dpoy_score(player, overall_rank[team]), "final": final_score(stats),
-                    "conference": "E" if team in EAST else "W",
-                })
+                row = {
+                    "player": player, "team": code,
+                    "group": "G" if player.get("pos") in ("PG", "SG") else ("C" if player.get("pos") == "C" else "F"),
+                    "mvp": mvp_score(stats, baseline_win[code], float(player.get("ovr", 70) or 70), games),
+                    "allnba": all_nba_score(stats, baseline_win[code], float(player.get("ovr", 70) or 70)),
+                    "dpoy": dpoy_score(player, overall_rank[code]), "final": final_score(stats),
+                    "conference": "E" if code in EAST else "W",
+                }
+                rival_rows.append(row)
+                rival_by_key[player_key(player)] = row
+        context = {
+            "season": season, "teams": teams, "rosters": rosters,
+            "baselinePowers": baseline_powers, "baselineWin": baseline_win,
+            "overallRank": overall_rank, "rivals": rival_rows, "rivalByKey": rival_by_key,
+        }
+        context_cache[season] = context
+        return context
 
+    def context_for_year(target_year: int, team: str) -> tuple[dict, bool]:
+        exact = f"{target_year}-{str((target_year + 1) % 100).zfill(2)}"
+        if exact in data["seasons"] and team in data["seasons"][exact]["teams"]:
+            return build_context(exact), False
+        choices = [season for season in available_seasons if team in data["seasons"][season]["teams"]]
+        selected = min(choices, key=lambda season: (abs(int(season[:4]) - target_year), int(season[:4]) < target_year))
+        return build_context(selected), True
+
+    def evaluate_team(context: dict, team: str, position: str, candidate: dict | None = None) -> dict:
+        candidate_id = player_key(candidate) if candidate else ""
+        cache_key = (context["season"], team, position, candidate_id)
+        if cache_key in evaluation_cache:
+            return evaluation_cache[cache_key]
+        profile = user_profiles[position]
+        attrs = profile["attrs"]
+        user_ovr = profile["ovr"]
+        user = {"name": "YOU", "cname": f"你（{user_ovr}）", "pos": position, "ovr": user_ovr, "_isUser": True, **attrs}
+        roster = [dict(player) for player in context["rosters"][team]]
+        outgoing = None
+        if candidate:
+            before = best_lineup([*roster, user])
+            outgoing = next((player for player in before["bench"] if not player.get("_isUser")), None)
+            if outgoing:
+                outgoing_id = player_key(outgoing)
+                for index, player in enumerate(roster):
+                    if player_key(player) == outgoing_id:
+                        roster.pop(index)
+                        break
+            roster.append(dict(candidate, team=team))
+        lineup = best_lineup([*roster, user])
+        power = team_power(lineup)
+        teams = context["teams"]
+        baseline_powers = context["baselinePowers"]
+        baseline_win = context["baselineWin"]
+        win_pct = sum(game_probability(power, baseline_powers[opp]) for opp in teams if opp != team) / max(1, len(teams) - 1)
+        conf_teams = [code for code in teams if (code in EAST) == (team in EAST)]
+        projected = {code: (win_pct if code == team else baseline_win[code]) for code in conf_teams}
+        conf_order = sorted(conf_teams, key=lambda code: -projected[code])
+        seed = conf_order.index(team) + 1
+        cutoff = projected[conf_order[min(7, len(conf_order) - 1)]] * 82
+        playoff_prob = logistic((win_pct * 82 - cutoff) / 2.6)
+        playoff_seed = min(seed, 8)
+        mirror = min(len(conf_order), max(1, 9 - playoff_seed))
+        first_opp = conf_order[mirror - 1]
+        first_p = series_probability(game_probability(power, baseline_powers[first_opp], (mirror - playoff_seed) * .4)) if first_opp != team else .82
+        top_four = [code for code in conf_order[:4] if code != team]
+        second_p = sum(series_probability(game_probability(power, baseline_powers[opp], (conf_order.index(opp) + 1 - playoff_seed) * .4)) for opp in top_four) / max(1, len(top_four))
+        top_two = [code for code in conf_order[:2] if code != team] or top_four
+        conf_final_p = sum(series_probability(game_probability(power, baseline_powers[opp], (conf_order.index(opp) + 1 - playoff_seed) * .4)) for opp in top_two) / max(1, len(top_two))
+        other_conf = [code for code in teams if (code in EAST) != (team in EAST)]
+        finals_opponents = sorted(other_conf, key=lambda code: -baseline_win[code])[:4]
+        finals_p = sum(series_probability(game_probability(power, baseline_powers[opp])) for opp in finals_opponents) / max(1, len(finals_opponents))
+        title_prob = clamp(0, playoff_prob * first_p * second_p * conf_final_p * finals_p, .92)
+
+        stats = user_stats(attrs, position, lineup)
+        user_mvp = mvp_score(stats, win_pct, user_ovr)
+        best_mvp = max(context["rivals"], key=lambda row: row["mvp"])
+        mvp_prob = logistic((user_mvp - best_mvp["mvp"]) / 3.2)
+        group = "G" if position in ("PG", "SG") else ("C" if position == "C" else "F")
+        group_rows = sorted([row for row in context["rivals"] if row["group"] == group], key=lambda row: -row["allnba"])
+        slot = 6 if group != "C" else 3
+        allnba_cutoff = group_rows[min(slot - 1, len(group_rows) - 1)]["allnba"]
+        user_allnba = all_nba_score(stats, win_pct, user_ovr)
+        allnba_prob = logistic((user_allnba - allnba_cutoff) / 2.8)
+        conference = "E" if team in EAST else "W"
+        allstar_rows = sorted([row for row in context["rivals"] if row["conference"] == conference], key=lambda row: -row["allnba"])
+        allstar_cutoff = allstar_rows[min(11, len(allstar_rows) - 1)]["allnba"]
+        allstar_prob = logistic((user_allnba - allstar_cutoff) / 2.5)
+        team_rank = sorted(teams, key=lambda code: -(win_pct if code == team else baseline_win[code])).index(team) + 1
+        user_defender = {"ovr": user_ovr, "min": stats["min"], **attrs}
+        user_dpoy = dpoy_score(user_defender, team_rank, True)
+        best_dpoy = max(context["rivals"], key=lambda row: row["dpoy"])
+        dpoy_prob = logistic((user_dpoy - best_dpoy["dpoy"]) / 5.0)
+        teammate_rows = [row for row in context["rivals"] if row["team"] == team]
+        if candidate and player_key(candidate) in context["rivalByKey"]:
+            teammate_rows.append(context["rivalByKey"][player_key(candidate)])
+        best_final = max(teammate_rows, key=lambda row: row["final"])
+        fmvp_share = logistic((final_score(stats) - best_final["final"]) / 3.0)
+        fmvp_prob = title_prob * fmvp_share
+        annual = title_prob * 18 + fmvp_prob * 14 + mvp_prob * 16 + dpoy_prob * 10 + allnba_prob * 5 + allstar_prob * 3
+        result = {
+            "lineup": lineup, "power": power, "seed": seed, "winPctRaw": win_pct,
+            "playoffProb": playoff_prob, "titleProb": title_prob,
+            "mvpProb": mvp_prob, "fmvpProb": fmvp_share, "dpoyProb": dpoy_prob,
+            "allNbaProb": allnba_prob, "allStarProb": allstar_prob,
+            "mvpScore": user_mvp, "mvpRival": best_mvp["player"].get("cname") or best_mvp["player"].get("name"),
+            "mvpGap": user_mvp - best_mvp["mvp"], "annual": annual, "outgoing": outgoing,
+        }
+        evaluation_cache[cache_key] = result
+        return result
+
+    def top_six_targets(context: dict, team: str) -> list[dict]:
+        candidates = []
+        seen = set()
+        for code in context["teams"]:
+            if code == team:
+                continue
+            for player in context["rosters"][code]:
+                key = player_key(player)
+                if not key or key in seen:
+                    continue
+                seen.add(key)
+                candidates.append(dict(player, team=code))
+        return sorted(candidates, key=lambda player: (-int(player.get("ovr", 0) or 0), player_key(player)))[:6]
+
+    def recruitment_plan(start_season: str, team: str, position: str) -> dict:
+        start_year = int(start_season[:4])
+        cache_key = (start_season, team, position)
+        if cache_key in recruitment_cache:
+            return recruitment_cache[cache_key]
+        node_rows = []
+        node_candidates = {}
+        for node in recruitment_nodes:
+            context, projected = context_for_year(start_year + node - 1, team)
+            baseline = evaluate_team(context, team, position)
+            rows = []
+            for candidate in top_six_targets(context, team):
+                after = evaluate_team(context, team, position, candidate)
+                delta_mvp = round((after["mvpProb"] - baseline["mvpProb"]) * 100)
+                delta_fmvp = round((after["fmvpProb"] - baseline["fmvpProb"]) * 100)
+                delta_dpoy = round((after["dpoyProb"] - baseline["dpoyProb"]) * 100)
+                delta_allnba = round((after["allNbaProb"] - baseline["allNbaProb"]) * 100)
+                safe = delta_mvp >= -5 and delta_fmvp >= -5 and delta_dpoy >= -3 and delta_allnba >= -5
+                remaining = max(0, 19 - node)
+                uplift = (after["annual"] - baseline["annual"]) * remaining
+                rows.append({
+                    "key": player_key(candidate),
+                    "name": candidate.get("cname") or candidate.get("name") or "未知球员",
+                    "team": candidate.get("team"), "position": candidate.get("pos", "—"),
+                    "ovr": int(candidate.get("ovr", 0) or 0), "safe": safe,
+                    "mvpPct": round(after["mvpProb"] * 100), "fmvpPct": round(after["fmvpProb"] * 100),
+                    "dpoyPct": round(after["dpoyProb"] * 100), "allNbaPct": round(after["allNbaProb"] * 100),
+                    "deltaMvp": delta_mvp, "deltaFmvp": delta_fmvp,
+                    "deltaDpoy": delta_dpoy, "deltaAllNba": delta_allnba,
+                    "uplift": round(uplift, 2),
+                })
+            safe_rows = [row for row in rows if row["safe"] and row["uplift"] > 0]
+            ranked = sorted(safe_rows or rows, key=lambda row: (-row["uplift"], -row["ovr"], row["name"]))
+            best = ranked[0] if ranked else None
+            action = "立即引援" if best and best["safe"] and best["uplift"] > 0 else "继续等待"
+            node_rows.append({
+                "season": node, "modelSeason": context["season"], "projected": projected,
+                "action": action, "player": best["name"] if best else "以当季名单为准",
+                "position": best["position"] if best else "—", "ovr": best["ovr"] if best else 0,
+                "mvpPct": best["mvpPct"] if best else round(baseline["mvpProb"] * 100),
+                "fmvpPct": best["fmvpPct"] if best else round(baseline["fmvpProb"] * 100),
+                "dpoyPct": best["dpoyPct"] if best else round(baseline["dpoyProb"] * 100),
+                "allNbaPct": best["allNbaPct"] if best else round(baseline["allNbaProb"] * 100),
+                "uplift": best["uplift"] if best and action == "立即引援" else 0,
+            })
+            node_candidates[node] = rows
+        viable = [row for row in node_rows if row["action"] == "立即引援"]
+        best_node = max(viable, key=lambda row: (row["uplift"], -row["season"])) if viable else max(node_rows, key=lambda row: (row["uplift"], -row["season"]))
+        for row in node_rows:
+            row["isBest"] = row["season"] == best_node["season"]
+        candidates = node_candidates[best_node["season"]]
+        for row in candidates:
+            row["isBest"] = best_node["action"] == "立即引援" and row["name"] == best_node["player"]
+            row.pop("uplift", None)
+        result = {
+            "bestSeason": best_node["season"], "bestPlayer": best_node["player"],
+            "bestAction": best_node["action"], "scoreGain": round(best_node["uplift"]),
+            "timeline": node_rows, "candidates": candidates,
+        }
+        recruitment_cache[cache_key] = result
+        return result
+
+    for season in selected_seasons:
+        context = build_context(season)
+        teams = context["teams"]
         season_results: dict = {}
         for position in POSITIONS:
             position_results = []
             for team in teams:
-                attrs = user_attrs[position]
-                user = {"name": "YOU", "cname": "你（97）", "pos": position, "ovr": 97, "_isUser": True, **attrs}
-                lineup = best_lineup([*rosters[team], user])
-                power = team_power(lineup)
-                win_pct = sum(game_probability(power, baseline_powers[opp]) for opp in teams if opp != team) / (len(teams) - 1)
-                conf_teams = [code for code in teams if (code in EAST) == (team in EAST)]
-                projected = {code: (win_pct if code == team else baseline_win[code]) for code in conf_teams}
-                conf_order = sorted(conf_teams, key=lambda code: -projected[code])
-                seed = conf_order.index(team) + 1
-                cutoff = projected[conf_order[min(7, len(conf_order) - 1)]] * 82
-                playoff_prob = logistic((win_pct * 82 - cutoff) / 2.6)
-
-                playoff_seed = min(seed, 8)
-                mirror = min(len(conf_order), 9 - playoff_seed)
-                first_opp = conf_order[mirror - 1]
-                first_p = series_probability(game_probability(power, baseline_powers[first_opp], (mirror - playoff_seed) * .4)) if first_opp != team else .82
-                top_four = [code for code in conf_order[:4] if code != team]
-                second_p = sum(series_probability(game_probability(power, baseline_powers[opp], (conf_order.index(opp) + 1 - playoff_seed) * .4)) for opp in top_four) / max(1, len(top_four))
-                top_two = [code for code in conf_order[:2] if code != team] or top_four
-                conf_final_p = sum(series_probability(game_probability(power, baseline_powers[opp], (conf_order.index(opp) + 1 - playoff_seed) * .4)) for opp in top_two) / max(1, len(top_two))
-                other_conf = [code for code in teams if (code in EAST) != (team in EAST)]
-                finals_opponents = sorted(other_conf, key=lambda code: -baseline_win[code])[:4]
-                finals_p = sum(series_probability(game_probability(power, baseline_powers[opp])) for opp in finals_opponents) / max(1, len(finals_opponents))
-                title_prob = clamp(0, playoff_prob * first_p * second_p * conf_final_p * finals_p, .92)
-
-                stats = user_stats(attrs, position, lineup)
-                user_mvp = mvp_score(stats, win_pct)
-                best_mvp = max(rival_rows, key=lambda row: row["mvp"])
-                mvp_prob = logistic((user_mvp - best_mvp["mvp"]) / 3.2)
-                group = "G" if position in ("PG", "SG") else ("C" if position == "C" else "F")
-                group_rows = sorted([row for row in rival_rows if row["group"] == group], key=lambda row: -row["allnba"])
-                slot = 6 if group != "C" else 3
-                allnba_cutoff = group_rows[min(slot - 1, len(group_rows) - 1)]["allnba"]
-                user_allnba = all_nba_score(stats, win_pct)
-                allnba_prob = logistic((user_allnba - allnba_cutoff) / 2.8)
-                conference = "E" if team in EAST else "W"
-                allstar_rows = sorted([row for row in rival_rows if row["conference"] == conference], key=lambda row: -row["allnba"])
-                allstar_cutoff = allstar_rows[min(11, len(allstar_rows) - 1)]["allnba"]
-                allstar_prob = logistic((user_allnba - allstar_cutoff) / 2.5)
-                user_defender = {"ovr": 97, "min": stats["min"], **attrs}
-                user_dpoy = dpoy_score(user_defender, min(overall_rank[team], 10), True)
-                best_dpoy = max(rival_rows, key=lambda row: row["dpoy"])
-                dpoy_prob = logistic((user_dpoy - best_dpoy["dpoy"]) / 5.0)
-                team_rivals = [row for row in rival_rows if row["team"] == team]
-                best_final = max(team_rivals, key=lambda row: row["final"])
-                fmvp_share = logistic((final_score(stats) - best_final["final"]) / 3.0)
-                fmvp_prob = title_prob * fmvp_share
-
-                annual = title_prob * 18 + fmvp_prob * 14 + mvp_prob * 16 + dpoy_prob * 10 + allnba_prob * 5 + allstar_prob * 3
-                career_mid = min(1260, 72 + annual * 18)
-                same_pos = sorted([player for player in rosters[team] if position in player_positions(player.get("pos", ""))], key=lambda p: -(int(p.get("ovr", 0) or 0)))
-                competitor = same_pos[0] if same_pos else None
-                lineup_rows = [compact_player(lineup["starters"][slot_name], f"首发{slot_name}", position) for slot_name in POS_ORDER if slot_name in lineup["starters"]]
-                lineup_rows += [compact_player(player, "核心轮换", position) for player in lineup["bench"][:2]]
+                current = evaluate_team(context, team, position)
+                profile = user_profiles[position]
+                career_mid = min(1260, 72 + current["annual"] * 18)
+                plan = recruitment_plan(season, team, position)
+                rank_score = min(1260, career_mid + max(0, plan["scoreGain"]))
+                lineup_rows = [compact_player(current["lineup"]["starters"][slot_name], f"首发{slot_name}", position) for slot_name in POS_ORDER if slot_name in current["lineup"]["starters"]]
                 position_results.append({
                     "team": team, "teamName": historical_team_name(team, season, guide["teamNames"]),
-                    "rank": 0, "tags": [], "isUserStarter": lineup["isUserStarter"], "seed": seed,
-                    "winPct": round(win_pct * 100), "winGain": round((win_pct - baseline_win[team]) * 100),
-                    "playoffPct": round(playoff_prob * 100), "titlePct": round(title_prob * 100),
-                    "mvpPct": round(mvp_prob * 100), "fmvpPct": round(fmvp_share * 100), "dpoyPct": round(dpoy_prob * 100),
-                    "allNbaPct": round(allnba_prob * 100), "allStarPct": round(allstar_prob * 100),
-                    "mvpScore": round(user_mvp, 1), "mvpGap": round(user_mvp - best_mvp["mvp"], 1),
-                    "mvpRival": best_mvp["player"].get("cname") or best_mvp["player"].get("name"),
-                    "mvpDifficulty": difficulty(mvp_prob), "fmvpDifficulty": difficulty(fmvp_share), "dpoyDifficulty": difficulty(dpoy_prob),
-                    "projectedLegacy": {"low": round(career_mid * .9 / 5) * 5, "mid": round(career_mid / 5) * 5, "high": min(1260, round(career_mid * 1.1 / 5) * 5)},
-                    "power": {key: round(value, 1) for key, value in power.items()}, "lineup": lineup_rows,
-                    "positionRival": ({"name": competitor.get("cname") or competitor.get("name"), "ovr": competitor.get("ovr")} if competitor else None),
+                    "rank": 0, "tags": [], "isUserStarter": current["lineup"]["isUserStarter"],
+                    "modelOvr": profile["ovr"], "boostedAttr": profile["boostedAttr"],
+                    "mvpPct": round(current["mvpProb"] * 100), "fmvpPct": round(current["fmvpProb"] * 100),
+                    "dpoyPct": round(current["dpoyProb"] * 100), "allNbaPct": round(current["allNbaProb"] * 100),
+                    "mvpDifficulty": difficulty(current["mvpProb"]), "fmvpDifficulty": difficulty(current["fmvpProb"]),
+                    "dpoyDifficulty": difficulty(current["dpoyProb"]),
+                    "lineup": lineup_rows, "recruitment": plan, "rankScore": round(rank_score, 2),
                 })
-
-            position_results.sort(key=lambda row: (-row["projectedLegacy"]["mid"], -row["titlePct"], -row["mvpPct"]))
+            position_results.sort(key=lambda row: (-row["rankScore"], -row["mvpPct"], -row["fmvpPct"], -row["dpoyPct"]))
             for index, row in enumerate(position_results):
                 row["rank"] = index + 1
-            for key, label in [("titlePct", "夺冠最稳"), ("mvpPct", "MVP最友好"), ("fmvpPct", "FMVP竞争低"), ("dpoyPct", "防守奖项友好")]:
-                for row in sorted(position_results, key=lambda item: -item[key])[:3]:
-                    row["tags"].append(label)
-            position_results[0]["tags"].insert(0, "生涯总分首选")
+            position_results[0]["tags"].append("累计历史分首选")
             season_results[position] = position_results
-
         output_seasons[season] = {
             "season": season, "teams": teams,
             "teamNames": {team: historical_team_name(team, season, guide["teamNames"]) for team in teams},
@@ -391,17 +525,27 @@ def main() -> None:
         }
         print(f"已完成 {season}")
 
+    SEASON_OUTPUT.mkdir(parents=True, exist_ok=True)
+    season_files = {}
+    for season, season_payload in output_seasons.items():
+        file_name = f"{season}.json"
+        (SEASON_OUTPUT / file_name).write_text(
+            json.dumps(season_payload, ensure_ascii=False, separators=(",", ":")), encoding="utf-8"
+        )
+        season_files[season] = f"/data/seasons/{file_name}"
+
     payload = {
         "meta": {
-            "source": "2026-08-28 游戏赛季阵容与模拟公式", "extractedAt": "2026-08-28",
-            "seasonCount": 21, "modelOvr": 97, "theoreticalMax": 1260,
+            "source": "2026-08-30 游戏赛季阵容、特训与引援公式", "extractedAt": "2026-08-30",
+            "seasonCount": 21, "modelOvrByPosition": {position: profile["ovr"] for position, profile in user_profiles.items()},
+            "theoreticalMax": 1260, "recruitmentNodes": recruitment_nodes,
             "notes": [
-                "球队五项实力、单场胜率和奖项竞争分按游戏公式计算。",
-                "季后赛概率、夺冠率与生涯历史分区间属于模型估算，不是游戏预设结果。",
-                "模型无法预知后续交易、选秀、成长、伤病与随机剧情。",
+                "自建球员使用本站无冲突最优组合，并按游戏规则把最低属性固定加20、最高99。",
+                "管理层引援候选按对应联盟赛季OVR前六生成，当前球队球员会被排除并按身份去重。",
+                "引援发生前还会经历随机交易、选秀、成长与伤病，因此未来候选与概率属于模型估算。",
             ],
         },
-        "seasons": selected_seasons, "userAttrs": user_attrs, "data": output_seasons,
+        "seasons": selected_seasons, "userProfiles": user_profiles, "seasonFiles": season_files,
     }
     OUTPUT.write_text(json.dumps(payload, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
     print(json.dumps({"output": str(OUTPUT), "seasons": len(selected_seasons), "cards": len(selected_seasons) * 5 * 30}, ensure_ascii=False))
