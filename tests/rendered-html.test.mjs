@@ -61,21 +61,40 @@ test("ships complete deferred strategy data", async () => {
   assert.equal(mcginnis?.rank, 12);
 });
 
-test("ships all 21 start-season team models", async () => {
+test("ships all 32 start-season team models and rookie award boards", async () => {
   const seasonModel = await readFile(new URL("../public/data/season-model.json", import.meta.url), "utf8").then(JSON.parse);
   assert.deepEqual(seasonModel.meta.recruitmentNodes, [2, 6, 10, 14, 18]);
   assert.equal(seasonModel.meta.modelOvrByPosition.PG, 98);
   assert.equal(seasonModel.userProfiles.PG.boostedAttr, "IDEF");
   assert.equal(seasonModel.userProfiles.PG.boostedTo, 99);
-  assert.equal(seasonModel.seasons.length, 21);
-  assert.equal(seasonModel.seasons[0], "1995-96");
+  assert.equal(seasonModel.seasons.length, 32);
+  assert.equal(seasonModel.seasons[0], "1984-85");
   assert.equal(seasonModel.seasons.at(-1), "2015-16");
+  assert.equal(seasonModel.meta.cardCount, 4500);
+  for (const position of ["PG", "SG", "SF", "PF", "C"]) {
+    for (const award of ["mvp", "dpoy", "fmvp", "title"]) {
+      assert.equal(seasonModel.awardLeaderboards[position][award].length, 10);
+    }
+  }
+  const season1984 = await readFile(new URL("../public/data/seasons/1984-85.json", import.meta.url), "utf8").then(JSON.parse);
+  const season1988 = await readFile(new URL("../public/data/seasons/1988-89.json", import.meta.url), "utf8").then(JSON.parse);
+  const season1989 = await readFile(new URL("../public/data/seasons/1989-90.json", import.meta.url), "utf8").then(JSON.parse);
+  assert.equal(season1984.teams.length, 23);
+  assert.equal(season1988.teams.length, 25);
+  assert.equal(season1989.teams.length, 27);
   const seasonData = await readFile(new URL("../public/data/seasons/2003-04.json", import.meta.url), "utf8").then(JSON.parse);
   assert.equal(seasonData.positions.PG.length, seasonData.teams.length);
   const topTeam = seasonData.positions.PG[0];
   assert.equal(topTeam.lineup.length, 5);
   assert.equal(topTeam.recruitment.timeline.length, 5);
   assert.equal(topTeam.recruitment.candidates.length, 6);
+  assert.ok(topTeam.fmvpPct <= topTeam.titlePct);
+  assert.equal(topTeam.lineup.some((player) => player.isUser), false);
+  assert.equal(topTeam.dpoyPct, 0, "rookie DPOY should retain the game's 0.25 multiplier");
+  assert.ok(
+    topTeam.recruitment.timeline.some((node) => node.dpoyPct > topTeam.dpoyPct),
+    "later recruitment seasons must not reuse the rookie DPOY multiplier",
+  );
 });
 
 test("serves leaderboard data without relying on the platform cache API", async () => {

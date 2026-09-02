@@ -4,10 +4,23 @@
 import { useEffect, useMemo, useState } from "react";
 
 const POSITIONS = ["PG", "SG", "SF", "PF", "C"] as const;
-const LEGEND_SEASONS = Array.from({ length: 21 }, (_, index) => {
-  const year = 1995 + index;
+const SITE_UPDATED_AT = "2026-09-02";
+const LEGEND_SEASONS = Array.from({ length: 32 }, (_, index) => {
+  const year = 1984 + index;
   return `${year}-${String((year + 1) % 100).padStart(2, "0")}`;
 });
+const LEGEND_SEASON_GROUPS = [
+  { label: "80年代", seasons: LEGEND_SEASONS.filter((season) => Number(season.slice(0, 4)) < 1990) },
+  { label: "90年代", seasons: LEGEND_SEASONS.filter((season) => Number(season.slice(0, 4)) >= 1990 && Number(season.slice(0, 4)) < 2000) },
+  { label: "00年代", seasons: LEGEND_SEASONS.filter((season) => Number(season.slice(0, 4)) >= 2000 && Number(season.slice(0, 4)) < 2010) },
+  { label: "10年代", seasons: LEGEND_SEASONS.filter((season) => Number(season.slice(0, 4)) >= 2010) },
+];
+const AWARD_BOARD_TYPES = [
+  { key: "mvp", label: "最有价值球员", short: "MVP" },
+  { key: "dpoy", label: "最佳防守球员", short: "DPOY" },
+  { key: "fmvp", label: "总决赛最有价值球员", short: "FMVP" },
+  { key: "title", label: "总冠军", short: "总冠军" },
+] as const;
 const POSITION_NAMES: Record<string, string> = { PG: "控球后卫", SG: "得分后卫", SF: "小前锋", PF: "大前锋", C: "中锋" };
 const POSITION_HINTS: Record<string, string> = {
   PG: "控场优先：护球、传球、外防", SG: "火力优先：三分、中投、关键", SF: "全能优先：攻防均衡与运动", PF: "锋线支点：终结、内防、篮板", C: "禁区核心：终结、护筐、篮板",
@@ -121,9 +134,9 @@ function PositionTabs({ value, onChange, compact = false }: { value: Position; o
 function HeroCurrent({ mode, setMode, careerSummary, legendSummary }: any) {
   const isLegend = mode === "legend";
   return <header id="top" className="hero hero-current">
-    <div className="hero-orb orb-one" /><div className="hero-orb orb-two" /><div className="hero-grid" aria-hidden="true" />
+    <div className="hero-orb orb-one" /><div className="hero-orb orb-two" />
     <div className="shell hero-inner">
-      <div className="source-pill">最新核验 · {cnDate(legendSummary.meta.extractedAt)}</div>
+      <div className="source-pill">最新核验 · {cnDate(SITE_UPDATED_AT)}</div>
       <h1>{isLegend ? <>选对属性，也要选对<br /><span>你的整个时代。</span></> : <>每一项属性，都选对<br /><span>那一个人。</span></>}</h1>
       <p className="hero-copy">{isLegend ? "统一队史池建球、最低属性特训、自由选年代，再把管理层引援用在最值的赛季。" : "先锁定球场位置，再查现役球员的实得值、无冲突组合、球队备选和剧情加点。"}</p>
       <div className="mode-selector" aria-label="选择游戏模式">
@@ -131,16 +144,16 @@ function HeroCurrent({ mode, setMode, careerSummary, legendSummary }: any) {
           <span>生涯模式</span><strong>{careerSummary.meta.playerCount} 名现役球员</strong><p>当前阵容 · 普通跨位置衰减</p>
         </button>
         <button className={isLegend ? "active legend" : "legend"} onClick={() => setMode("legend")}>
-          <span>新版传奇模式</span><strong>统一队史池 · 自选年代</strong><p>30 队历史阵容夺属性，1995-96 至 2015-16 开生涯</p>
+          <span>新版传奇模式</span><strong>统一队史池 · 自选年代</strong><p>30 队历史阵容夺属性，1984-85 至 2015-16 开生涯</p>
         </button>
       </div>
-      {isLegend && <div className="legend-update-strip"><b>新版完整流程</b><span>统一队史池建球</span><i>→</i><span>最低属性固定 +20</span><i>→</i><span>自由选择起始赛季</span><i>→</i><span>休赛期六选一引援</span></div>}
+      {isLegend && <><div className="legend-release-note"><strong>本次新增11季</strong><span>1984-85 至 1994-95 已补齐，可开局赛季现为32个；早期联盟按23／25／27队实际规模展示。</span></div><div className="legend-update-strip"><b>新版完整流程</b><span>统一队史池建球</span><i>→</i><span>最低属性固定 +20</span><i>→</i><span>32个起始赛季</span><i>→</i><span>休赛期六选一引援</span></div></>}
       <div className="hero-actions"><a className="button primary" href={isLegend ? "#season-guide" : "#optimal"}>{isLegend ? "查看赛季择队" : "查看最优组合"}</a><a className="button ghost" href="#rankings">查看属性榜</a></div>
       <div className="hero-proof">
         <div><strong>{isLegend ? legendSummary.meta.playerCount : careerSummary.meta.playerCount}</strong><span>{isLegend ? "统一队史候选" : "现役确定性球员"}</span></div>
-        <div><strong>{isLegend ? "21" : "5 × 13"}</strong><span>{isLegend ? "自由起始赛季" : "位置属性榜"}</span></div>
+        <div><strong>{isLegend ? "32" : "5 × 13"}</strong><span>{isLegend ? "自由起始赛季" : "位置属性榜"}</span></div>
         <div><strong>1—40</strong><span>完整属性排行</span></div>
-        <div><strong>{isLegend ? "3150" : careerSummary.eventCounts.staged}</strong><span>{isLegend ? "球队与引援决策卡" : "条分阶段剧情"}</span></div>
+        <div><strong>{isLegend ? "32 × 5" : careerSummary.eventCounts.staged}</strong><span>{isLegend ? "赛季位置决策集" : "条分阶段剧情"}</span></div>
       </div>
     </div>
   </header>;
@@ -154,7 +167,7 @@ function LegendOverviewCurrent({ legendData }: any) {
   const facts = [
     ["01", "先用统一队史池夺属性", `所有开局都从同一套 30 队、${legendData.meta.playerCount} 名队史候选中选人，起始赛季不会改变球员数值。`],
     ["02", "最低属性可以特训", "揭幕时自动找到13项里的最低值，观看广告后固定加20、最高99；并列最低按游戏属性顺序取最靠前的一项。"],
-    ["03", "建球后再选起始赛季", "可用范围是1995-96至2015-16。赛季决定球队名单、位置竞争、联盟强弱和奖项对手。"],
+    ["03", "建球后再选起始赛季", "可用范围已扩展为1984-85至2015-16，共32季。赛季决定球队名单、位置竞争、联盟强弱和奖项对手。"],
     ["04", "首季结束开放管理层引援", "候选是本队之外、按球员身份去重后的联盟综评前6。接受后只能使用一次，并送走本队当前最高顺位的非用户替补。"],
     ["05", "拒绝不会永远错过", "可用节点是第二、第六、第十、第十四、第十八赛季开始前；拒绝后隔三个完整赛季再问，接受后后续节点全部消失。"],
   ];
@@ -247,23 +260,64 @@ function SourceBadge({ kind }: { kind: "游戏公式" | "模型估算" | "实时
   return <span className={`source-badge source-${kind}`}>{kind}</span>;
 }
 
-function SeasonTeamCard({ item, position }: { item: any; position: Position }) {
+function probabilityLabel(row: any) {
+  return row?.underOne ? "<1%" : `${row?.probability ?? 0}%`;
+}
+
+function RookieAwardBoard({ model, position, onPick }: { model: any; position: Position; onPick: (row: any) => void }) {
+  const [award, setAward] = useState<(typeof AWARD_BOARD_TYPES)[number]["key"]>("mvp");
+  const active = AWARD_BOARD_TYPES.find((item) => item.key === award) || AWARD_BOARD_TYPES[0];
+  const rows = model?.awardLeaderboards?.[position]?.[award] || [];
+  return <section className={`rookie-award-board award-${award}`} aria-labelledby="rookie-award-title">
+    <header>
+      <div><h3 id="rookie-award-title">新秀第一年，去哪最容易拿奖？</h3><p>32个起始赛季逐队重算；当前是 {POSITION_NAMES[position]} 的 {active.label} 前10。</p></div>
+      <SourceBadge kind="模型估算" />
+    </header>
+    <div className="award-board-tabs" role="tablist" aria-label="选择新秀季目标奖项">
+      {AWARD_BOARD_TYPES.map((item) => {
+        const leader = model?.awardLeaderboards?.[position]?.[item.key]?.[0];
+        return <button key={item.key} className={award === item.key ? "active" : ""} onClick={() => setAward(item.key)} role="tab" aria-selected={award === item.key}><span>{item.short}</span><strong>{leader ? probabilityLabel(leader) : "—"}</strong><small>第1名概率</small></button>;
+      })}
+    </div>
+    {!model && <div className="award-board-loading">正在计算32季新秀冲奖排名……</div>}
+    {rows.length > 0 && <>
+      <div className="award-podium">
+        {rows.slice(0, 3).map((row: any) => <button key={`${award}-${row.season}-${row.team}`} className={`podium-rank-${row.rank}`} onClick={() => onPick(row)}>
+          <div className="podium-top"><span className="award-rank">第{row.rank}名</span><strong>{probabilityLabel(row)}</strong></div>
+          <div className="podium-team"><TeamMark team={row.team} name={row.teamName} large /><span><b>{row.season}</b><strong>{row.teamName}</strong>{row.teamName !== row.modernTeamName && <small>现对应：{row.modernTeamName}</small>}</span></div>
+          <p>{row.reason}</p><small className="award-risk">{row.risk}</small><em>查看该队详细方案</em>
+        </button>)}
+      </div>
+      <div className="award-rank-list">
+        {rows.slice(3).map((row: any) => <button key={`${award}-${row.season}-${row.team}`} onClick={() => onPick(row)}><span className="award-rank">{row.rank}</span><TeamMark team={row.team} name={row.teamName} /><span className="award-list-team"><b>{row.teamName}</b><small>{row.season}{row.teamName !== row.modernTeamName ? ` · 现对应${row.modernTeamName}` : ""}</small></span><p>{row.reason}</p><strong>{probabilityLabel(row)}</strong></button>)}
+      </div>
+    </>}
+    {award === "dpoy" && <div className="rookie-dpoy-warning"><strong>先说结论：新秀季DPOY几乎拿不到。</strong><span>游戏会把新秀的DPOY评选分固定乘 0.25；本榜仅表示哪些阵容相对更接近。</span></div>}
+  </section>;
+}
+
+function SeasonTeamCard({ item, position, highlighted = false }: { item: any; position: Position; highlighted?: boolean }) {
   const plan = item.recruitment;
   const answer = plan.bestAction === "立即引援"
     ? `开局选${item.teamName}，第${plan.bestSeason}赛季引进${plan.bestPlayer}`
     : `开局选${item.teamName}，这局优先保住个人奖项，暂不使用引援`;
   const delta = (value: number) => value > 0 ? `+${value}` : String(value);
-  return <article className="season-team-card">
+  const awardRanks = Object.entries(item.awardRanks || {}).filter(([, rank]) => Number(rank) <= 10) as [string, number][];
+  const awardName = (key: string) => AWARD_BOARD_TYPES.find((award) => award.key === key)?.short || key;
+  const awardProbability = (key: string) => item[`${key === "title" ? "title" : key}Pct`] ?? 0;
+  return <article id={`season-team-${item.season}-${position}-${item.team}`} className={`season-team-card ${highlighted ? "jump-highlight" : ""}`}>
     <header>
       <span className={`team-rank rank-${item.rank}`}>{item.rank}</span>
       <TeamMark team={item.team} name={item.teamName} large />
-      <div><h3>{item.teamName}</h3><p>{POSITION_NAMES[position]} · 无冲突最优建球 · 特训后综评 {item.modelOvr}</p></div>
+      <div><h3>{item.teamName}</h3>{item.teamName !== item.modernTeamName && <span className="modern-team-name">现对应：{item.modernTeamName}</span>}<p>{POSITION_NAMES[position]} · 无冲突最优建球 · 特训后综评 {item.modelOvr}</p></div>
       <div className="team-card-status"><span>{item.tags[0] || "完整联盟"}</span><strong>{item.isUserStarter ? "预计首发" : "预计第六人"}</strong></div>
     </header>
+    {awardRanks.length > 0 && <div className="award-pick-badges">{awardRanks.map(([key, rank]) => <span key={key} className={`${rank <= 3 ? "award-first-choice" : "award-top-ten"} award-${key}`}>{rank <= 3 ? `冲${awardName(key)}首选 · 第${rank}` : `${awardName(key)}前10 · 第${rank}`}<b>{awardProbability(key)}%</b></span>)}</div>}
     <div className="recruit-answer">
       <div><span>一句话答案</span><h4>{answer}</h4></div>
       <em>{plan.bestAction === "立即引援" ? `第${plan.bestSeason}赛季出手` : "保留个人奖项"}</em>
     </div>
+    <section className="starter-five starter-five-emphasis"><header><span>入队前真实首发五人</span><strong>你将替换同位置首发</strong></header><div>{item.lineup.map((player: any, index: number) => <div key={`${player.name}-${index}`}><strong>{player.name}</strong><span>{player.position}</span><b>{player.ovr}</b></div>)}</div></section>
     <div className="recruit-timeline" aria-label="引援节点">
       {plan.timeline.map((node: any) => <div className={`${node.isBest ? "is-best" : ""} ${node.action === "继续等待" ? "is-wait" : ""}`} key={node.season}>
         <span>第{node.season}赛季</span>
@@ -273,10 +327,7 @@ function SeasonTeamCard({ item, position }: { item: any; position: Position }) {
         {node.projected && <em>未来名单估算</em>}
       </div>)}
     </div>
-    <div className="team-core-grid">
-      <section className="starter-five"><header><span>开局首发五人</span><strong>姓名 · 位置 · 综合分</strong></header><div>{item.lineup.map((player: any, index: number) => <div className={player.isUser ? "is-user" : ""} key={`${player.name}-${index}`}><strong>{player.name}</strong><span>{player.position}</span><b>{player.ovr}</b></div>)}</div></section>
-      <section className="personal-awards"><header><span>开局个人奖项概率</span><strong>只保留历史分相关指标</strong></header><div><div><span>最有价值球员</span><strong>{item.mvpPct}%</strong><small>{item.mvpDifficulty}</small></div><div><span>最佳防守球员</span><strong>{item.dpoyPct}%</strong><small>{item.dpoyDifficulty}</small></div><div><span>总决赛最有价值球员</span><strong>{item.fmvpPct}%</strong><small>{item.fmvpDifficulty}</small></div><div><span>最佳阵容</span><strong>{item.allNbaPct}%</strong><small>模型概率</small></div></div></section>
-    </div>
+    <section className="personal-awards personal-awards-wide"><header><span>新秀季个人奖项概率</span><strong>FMVP为整季绝对概率</strong></header><div><div><span>最有价值球员</span><strong>{item.mvpPct}%</strong><small>{item.mvpDifficulty}</small></div><div><span>最佳防守球员</span><strong>{item.dpoyPct}%</strong><small>{item.dpoyDifficulty}</small></div><div><span>总决赛最有价值球员</span><strong>{item.fmvpPct}%</strong><small>{item.fmvpDifficulty}</small></div><div><span>最佳阵容</span><strong>{item.allNbaPct}%</strong><small>模型概率</small></div></div></section>
     <section className="recruit-candidates">
       <header><div><span>最佳节点 · 第{plan.bestSeason}赛季</span><h4>管理层给出的六名候选</h4></div><strong>{plan.bestAction === "立即引援" ? `${plan.bestPlayer} · 历史分最优` : "没有安全答案，建议继续等待"}</strong></header>
       <div>{plan.candidates.map((player: any) => <article className={`${player.isBest ? "is-best" : ""} ${!player.safe ? "is-risk" : ""}`} key={`${player.key}-${player.team}`}>
@@ -294,6 +345,7 @@ function LegendSeasonGuide({ position }: { position: Position }) {
   const [season, setSeason] = useState("2003-04");
   const [showAll, setShowAll] = useState(false);
   const [pickerOpen, setPickerOpen] = useState(false);
+  const [focusTeam, setFocusTeam] = useState<{ team: string; position: Position } | null>(null);
   useEffect(() => {
     const controller = new AbortController();
     fetch("/data/season-model.json", { signal: controller.signal }).then((response) => {
@@ -317,19 +369,26 @@ function LegendSeasonGuide({ position }: { position: Position }) {
   const seasonIndex = LEGEND_SEASONS.indexOf(season);
   const rows = seasonData?.positions?.[position] || [];
   const visible = showAll ? rows : rows.slice(0, 5);
-  const selectSeason = (value: string) => { setError(""); setSeason(value); setShowAll(false); setPickerOpen(false); };
+  useEffect(() => {
+    if (!focusTeam || focusTeam.position !== position || !seasonData || !showAll) return;
+    const frame = window.requestAnimationFrame(() => document.getElementById(`season-team-${season}-${position}-${focusTeam.team}`)?.scrollIntoView({ behavior: "smooth", block: "start" }));
+    return () => window.cancelAnimationFrame(frame);
+  }, [focusTeam, position, season, seasonData, showAll]);
+  const selectSeason = (value: string) => { setError(""); setSeason(value); setShowAll(false); setPickerOpen(false); setFocusTeam(null); };
+  const jumpToTeam = (row: any) => { setError(""); setSeason(row.season); setShowAll(true); setPickerOpen(false); setFocusTeam({ team: row.team, position }); };
   return <section id="season-guide" className="section shell season-guide-section">
-    <SectionHeading index="04" title="这个年代，开局选哪队、引援何时用？" text="先选位置和起始赛季。球队按累计历史分重新排序，每张卡直接给出开局首发、五个引援节点和最佳节点六人名单。" aside={<SourceBadge kind="模型估算" />} />
+    <SectionHeading index="04" title="这个年代，开局选哪队、引援何时用？" text="1984-85至2015-16共32个可开局赛季全部重算。先看新秀季冲奖榜，再进入具体球队卡看首发与长期引援。" aside={<SourceBadge kind="模型估算" />} />
+    <RookieAwardBoard model={model} position={position} onPick={jumpToTeam} />
     <div className="season-control-panel">
       <div className="season-current"><button disabled={seasonIndex <= 0} onClick={() => selectSeason(LEGEND_SEASONS[seasonIndex - 1])}>上一赛季</button><div><span>当前起始赛季</span><strong>{season}</strong><small>{POSITION_NAMES[position]} · 只按累计历史分最优排序</small></div><button disabled={seasonIndex >= LEGEND_SEASONS.length - 1} onClick={() => selectSeason(LEGEND_SEASONS[seasonIndex + 1])}>下一赛季</button></div>
       <button className="mobile-season-trigger" onClick={() => setPickerOpen(true)}>选择其他赛季</button>
-      <div className="season-grid" aria-label="选择起始赛季">{LEGEND_SEASONS.map((value) => <button key={value} className={season === value ? "active" : ""} onClick={() => selectSeason(value)}>{value}</button>)}</div>
+      <div className="season-era-groups" aria-label="选择起始赛季">{LEGEND_SEASON_GROUPS.map((group) => <section key={group.label}><span>{group.label}</span><div>{group.seasons.map((value) => <button key={value} className={season === value ? "active" : ""} onClick={() => selectSeason(value)}>{value}</button>)}</div></section>)}</div>
     </div>
-    <div className="model-note"><SourceBadge kind="游戏公式" /><p>建球使用本站无冲突最优组合，并自动把最低属性加20、最高99。引援安全线：最有价值球员／总决赛最有价值球员／最佳阵容最多下降5个百分点，最佳防守球员最多下降3个百分点。</p><details><summary>查看估算边界</summary><span>候选名单会在游戏中先经过随机交易、选秀、成长和伤病。本站按相应赛季联盟综评前六建模；实际名单不同，就照同一安全线选择，关闭六人名单不会返还引援机会。</span></details></div>
+    <div className="model-note"><SourceBadge kind="游戏公式" /><p>起始赛季只改变当年阵容和联盟环境，不改变传奇统一夺取属性池。早期联盟会按当季真实规模显示23、25或27队。引援安全线：MVP／FMVP／最佳阵容最多下降5个百分点，DPOY最多下降3个百分点。</p><details><summary>查看估算边界</summary><span>候选名单会在游戏中先经过随机交易、选秀、成长和伤病。本站按相应赛季联盟综评前六建模；实际名单不同，就照同一安全线选择。</span></details></div>
     {(!model || !seasonData) && !error && <div className="season-loading">正在载入 {season} 球队与引援模型……</div>}
     {error && <div className="season-loading error">{error}，请刷新页面重试。</div>}
-    {seasonData && <><div className="season-guide-head"><div><strong>{season} · {POSITION_NAMES[position]}</strong><span>先看累计历史分最优的 5 队</span></div><p>共 {rows.length} 支可选球队 · 当前展示 {visible.length} 支</p></div><div className="season-team-list">{visible.map((item: any) => <SeasonTeamCard key={item.team} item={item} position={position} />)}</div>{rows.length > 5 && <button className="show-all-teams" onClick={() => setShowAll((value) => !value)}>{showAll ? "收起，只看前 5 队" : `查看 ${season} 完整联盟（${rows.length} 队）`}</button>}</>}
-    {pickerOpen && <div className="season-picker-backdrop"><button className="backdrop-dismiss" aria-label="关闭赛季选择" onClick={() => setPickerOpen(false)} /><aside className="season-picker-sheet"><header><div><span>选择起始赛季</span><strong>1995-96 至 2015-16</strong></div><button onClick={() => setPickerOpen(false)}>关闭</button></header><div>{LEGEND_SEASONS.map((value) => <button key={value} className={season === value ? "active" : ""} onClick={() => selectSeason(value)}>{value}</button>)}</div></aside></div>}
+    {seasonData && <><div className="season-guide-head"><div><strong>{season} · {POSITION_NAMES[position]}</strong><span>先看累计历史分最优的 5 队</span></div><p>共 {rows.length} 支可选球队 · 当前展示 {visible.length} 支</p></div><div className="season-team-list">{visible.map((item: any) => <SeasonTeamCard key={item.team} item={item} position={position} highlighted={focusTeam?.position === position && focusTeam.team === item.team} />)}</div>{rows.length > 5 && <button className="show-all-teams" onClick={() => { setFocusTeam(null); setShowAll((value) => !value); }}>{showAll ? "收起，只看前 5 队" : `查看 ${season} 完整联盟（${rows.length} 队）`}</button>}</>}
+    {pickerOpen && <div className="season-picker-backdrop"><button className="backdrop-dismiss" aria-label="关闭赛季选择" onClick={() => setPickerOpen(false)} /><aside className="season-picker-sheet"><header><div><span>选择起始赛季</span><strong>1984-85 至 2015-16</strong></div><button onClick={() => setPickerOpen(false)}>关闭</button></header><div className="season-sheet-groups">{LEGEND_SEASON_GROUPS.map((group) => <section key={group.label}><span>{group.label}</span><div>{group.seasons.map((value) => <button key={value} className={season === value ? "active" : ""} onClick={() => selectSeason(value)}>{value}</button>)}</div></section>)}</div></aside></div>}
   </section>;
 }
 
@@ -471,7 +530,7 @@ function TitleLibrary({ data }: { data: any }) {
 }
 
 function DataSectionCurrent({ careerData, legendData }: any) {
-  return <section id="data" className="section shell"><SectionHeading index="12" title={`数据快照 · ${cnDate(legendData.meta.extractedAt)}`} text="固定球员值、最低属性特训和管理层引援触发条件来自当前游戏脚本；未来候选与获奖概率单独标注为模型估算。" /><div className="data-grid"><article><span>生涯模式</span><h3>{careerData.meta.playerCount} 人</h3><p>30队确定性现役球员；随机生成新秀不混进静态属性榜。</p></article><article><span>传奇夺取池</span><h3>{legendData.meta.playerCount} 人</h3><p>30队统一队史池，不再按起始年代删减球队或球员。</p></article><article><span>自由起始赛季</span><h3>21 季</h3><p>1995-96至2015-16；每季逐队展示首发和五位置推荐。</p></article><article><span>完整决策模型</span><h3>3150 卡</h3><p>无冲突最优建球＋最低项加20，再比较五个管理层引援节点。</p></article></div><div className="data-notes"><div><span>游戏公式</span><p>跨位置衰减、最低属性加20、引援六人生成、奖项评分与最终历史分。</p></div><div><span>模型估算</span><p>逐队个人奖项概率、五个引援节点与联盟综评前六候选的历史分收益。</p></div><div><span>实时数据</span><p>在线排行榜与30支球队队史榜门槛；每3—5分钟更新并保留最近成功结果。</p></div><div><span>最重要的边界</span><p>游戏会先执行随机交易、选秀、伤病与成长，实际六人名单可能与静态模型不同；届时按同一奖项安全线选择。</p></div></div></section>;
+  return <section id="data" className="section shell"><SectionHeading index="12" title={`数据快照 · ${cnDate(SITE_UPDATED_AT)}`} text="固定球员值、最低属性特训和管理层引援触发条件来自当前游戏脚本；未来候选与获奖概率单独标注为模型估算。" /><div className="data-grid"><article><span>生涯模式</span><h3>{careerData.meta.playerCount} 人</h3><p>30队确定性现役球员；随机生成新秀不混进静态属性榜。</p></article><article><span>传奇夺取池</span><h3>{legendData.meta.playerCount} 人</h3><p>30队统一队史池，不再按起始年代删减球队或球员。</p></article><article><span>自由起始赛季</span><h3>32 季</h3><p>1984-85至2015-16；新增11季并完整重算五位置。</p></article><article><span>完整决策模型</span><h3>32 × 5</h3><p>无冲突最优建球＋最低项加20，再比较当季球队与五个引援节点。</p></article></div><div className="data-notes"><div><span>游戏公式</span><p>跨位置衰减、最低属性加20、引援六人生成、奖项评分与最终历史分。</p></div><div><span>模型估算</span><p>新秀季四项前10、逐队个人奖项概率、五个引援节点与联盟综评前六候选。</p></div><div><span>实时数据</span><p>在线排行榜与30支球队队史榜门槛；每3—5分钟更新并保留最近成功结果。</p></div><div><span>最重要的边界</span><p>游戏会先执行随机交易、选秀、伤病与成长，实际六人名单可能与静态模型不同；届时按同一奖项安全线选择。</p></div></div></section>;
 }
 
 export default function GuideApp({ careerSummary, legendSummary }: { careerSummary: any; legendSummary: any }) {
@@ -583,7 +642,7 @@ export default function GuideApp({ careerSummary, legendSummary }: { careerSumma
       <TitleLibrary data={careerData} />
       <DataSectionCurrent careerData={careerData} legendData={legendData} />
     </> : <DataLoading error={loadError} onRetry={() => setLoadAttempt((value) => value + 1)} />}
-    <footer><div className="shell"><div><strong>打造我的传奇球星全方位攻略</strong><p>最新核验：{cnDate(legendSummary.meta.extractedAt)} · 统一队史属性池 · 21个传奇起始赛季。</p></div><a href="#top">回到顶部</a></div></footer>
+    <footer><div className="shell"><div><strong>打造我的传奇球星全方位攻略</strong><p>最新核验：{cnDate(SITE_UPDATED_AT)} · 统一队史属性池 · 32个传奇起始赛季。</p></div><a href="#top">回到顶部</a></div></footer>
     <a className="back-top" href="#top" aria-label="回到顶部">↑</a>
     {menuOpen && <div className="menu-backdrop"><button className="backdrop-dismiss" aria-label="关闭页面目录" onClick={() => setMenuOpen(false)} /><aside className="mobile-menu"><header><div><span>页面目录</span><strong>{mode === "career" ? "生涯模式" : "新版传奇模式"}</strong></div><button onClick={() => setMenuOpen(false)}>关闭</button></header><div>{visibleNav.map(([name, href], index) => <a key={href} href={href} onClick={() => setMenuOpen(false)}><span>{String(index).padStart(2, "0")}</span>{name}</a>)}</div></aside></div>}
     <button className="mobile-menu-button" onClick={() => setMenuOpen(true)}><span>目录</span><b>{mode === "career" ? "生涯" : "传奇"}</b></button>

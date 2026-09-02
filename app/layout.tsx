@@ -8,13 +8,13 @@ export const metadata: Metadata = {
   icons: { icon: "/favicon.svg", shortcut: "/favicon.svg" },
   openGraph: {
     title: "打造我的传奇球星｜全方位攻略",
-    description: "统一队史属性池、最低属性特训、21个传奇起始赛季、五位置择队与管理层引援攻略。",
+    description: "统一队史属性池、32个传奇起始赛季、新秀季四项冲奖榜、五位置择队与管理层引援攻略。",
     images: ["/og.png"],
   },
   twitter: {
     card: "summary_large_image",
     title: "打造我的传奇球星｜全方位攻略",
-    description: "统一队史属性池、最低属性特训、21个传奇起始赛季、五位置择队与管理层引援攻略。",
+    description: "统一队史属性池、32个传奇起始赛季、新秀季四项冲奖榜、五位置择队与管理层引援攻略。",
     images: ["/og.png"],
   },
 };

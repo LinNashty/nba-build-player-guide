@@ -51,7 +51,6 @@ button:focus-visible,a:focus-visible,input:focus-visible,summary:focus-visible {
 .hero-orb { position:absolute; border-radius:50%; filter:blur(4px); pointer-events:none; }
 .orb-one { top:-330px; right:-80px; width:760px; height:760px; background:radial-gradient(circle,rgba(102,217,239,.12),transparent 67%); }
 .orb-two { bottom:-380px; left:-60px; width:760px; height:760px; background:radial-gradient(circle,rgba(185,245,106,.09),transparent 68%); }
-.hero-grid { position:absolute; inset:76px 0 0; opacity:.28; pointer-events:none; background-image:linear-gradient(rgba(255,255,255,.026) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.026) 1px,transparent 1px); background-size:72px 72px; mask-image:radial-gradient(ellipse at 50% 42%,#000 0%,transparent 68%); }
 .hero-inner { position:relative; z-index:1; display:flex; flex-direction:column; align-items:center; padding-top:112px; padding-bottom:58px; text-align:center; }
 .source-pill,.method-chip,.verified-chip { display:inline-flex; align-items:center; gap:8px; width:max-content; padding:8px 12px; border:1px solid var(--line-strong); border-radius:999px; color:var(--muted); background:rgba(255,255,255,.035); font-size:12px; font-weight:650; }
 .hero h1 { max-width:980px; margin:30px 0 0; font-size:clamp(58px,6.4vw,90px); font-weight:840; line-height:.98; letter-spacing:-.067em; }
@@ -80,7 +79,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,summary:focus-visible {
 .hero-proof strong { display:block; font-size:24px; letter-spacing:-.04em; }
 .hero-proof span { display:block; margin-top:4px; color:var(--dim); font-size:11px; }
 
-.hero-inner > .source-pill,.hero-inner > h1,.hero-inner > .hero-copy,.hero-inner > .mode-selector,.hero-inner > .hero-actions,.hero-inner > .hero-proof { animation:hero-arrive 700ms cubic-bezier(.16,1,.3,1) both; }
+.hero-inner > .source-pill,.hero-inner > h1,.hero-inner > .hero-copy,.hero-inner > .mode-selector,.hero-inner > .legend-release-note,.hero-inner > .hero-actions,.hero-inner > .hero-proof { animation:hero-arrive 700ms cubic-bezier(.16,1,.3,1) both; }
 .hero-inner > h1 { animation-delay:70ms; }
 .hero-inner > .hero-copy { animation-delay:135ms; }
 .hero-inner > .mode-selector { animation-delay:180ms; }
@@ -439,6 +438,9 @@ footer a { padding:10px 12px; border:1px solid var(--line); border-radius:10px; 
 .global-position-tabs b { display:block; font-size:11px; line-height:1; }
 .global-position-tabs span { display:block; margin-top:2px; font-size:8px; font-weight:750; white-space:nowrap; }
 .hero-current { min-height:820px; }
+.legend-release-note { display:flex; width:min(920px,100%); align-items:center; gap:12px; margin-top:14px; padding:13px 16px; border:1px solid rgba(185,245,106,.2); border-radius:16px; background:rgba(185,245,106,.055); }
+.legend-release-note strong { flex:none; color:var(--lime); font-size:12px; }
+.legend-release-note span { color:#d3dbe4; font-size:12px; line-height:1.55; }
 .legend-update-strip { display:flex; width:min(920px,100%); min-height:58px; align-items:center; justify-content:center; gap:11px; margin-top:10px; padding:11px 16px; border:1px solid rgba(246,199,91,.2); border-radius:16px; color:#d7dee7; background:rgba(246,199,91,.045); animation:hero-arrive 520ms cubic-bezier(.16,1,.3,1) both; }
 .legend-update-strip b { color:var(--amber); font-size:11px; }
 .legend-update-strip span { font-size:12px; font-weight:700; }
@@ -456,6 +458,51 @@ footer a { padding:10px 12px; border:1px solid var(--line); border-radius:10px; 
 .quick-nav { grid-template-columns:repeat(auto-fit,minmax(78px,1fr)); }
 
 .season-guide-section { position:relative; }
+.rookie-award-board { --award:var(--amber); margin-bottom:18px; padding:24px; overflow:hidden; border:1px solid var(--line-strong); border-radius:24px; background:linear-gradient(135deg,color-mix(in srgb,var(--award) 6%,var(--surface)),var(--surface) 44%); box-shadow:0 20px 60px rgba(0,0,0,.2); }
+.rookie-award-board.award-mvp { --award:var(--amber); }
+.rookie-award-board.award-dpoy { --award:var(--cyan); }
+.rookie-award-board.award-fmvp { --award:var(--violet); }
+.rookie-award-board.award-title { --award:var(--lime); }
+.rookie-award-board > header { display:flex; align-items:start; justify-content:space-between; gap:24px; }
+.rookie-award-board > header h3 { margin:0; font-size:30px; line-height:1.12; letter-spacing:-.04em; }
+.rookie-award-board > header p { max-width:720px; margin:8px 0 0; color:var(--muted); font-size:12px; line-height:1.6; }
+.award-board-tabs { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:6px; margin-top:20px; padding:6px; border:1px solid var(--line); border-radius:16px; background:var(--surface-3); }
+.award-board-tabs button { min-width:0; min-height:70px; padding:10px 12px; border:1px solid transparent; border-radius:11px; text-align:left; background:transparent; cursor:pointer; transition:180ms ease; }
+.award-board-tabs button:hover { background:rgba(255,255,255,.04); }
+.award-board-tabs button.active { border-color:color-mix(in srgb,var(--award) 34%,transparent); background:color-mix(in srgb,var(--award) 9%,transparent); box-shadow:0 10px 26px rgba(0,0,0,.18); }
+.award-board-tabs span,.award-board-tabs strong,.award-board-tabs small { display:block; }
+.award-board-tabs span { color:var(--muted); font-size:11px; font-weight:800; }
+.award-board-tabs strong { margin-top:3px; color:var(--award); font-size:22px; line-height:1; font-variant-numeric:tabular-nums; }
+.award-board-tabs small { margin-top:4px; color:var(--dim); font-size:8px; }
+.award-board-loading { display:grid; min-height:220px; place-items:center; color:var(--muted); font-size:13px; }
+.award-podium { display:grid; grid-template-columns:1.08fr .96fr .96fr; gap:8px; margin-top:10px; }
+.award-podium > button { min-width:0; padding:18px; border:1px solid var(--line); border-radius:16px; color:var(--text); text-align:left; background:rgba(5,8,12,.45); cursor:pointer; transition:180ms ease; }
+.award-podium > button:hover { border-color:color-mix(in srgb,var(--award) 45%,transparent); transform:translateY(-2px); box-shadow:0 18px 44px rgba(0,0,0,.24); }
+.award-podium > button.podium-rank-1 { border-color:color-mix(in srgb,var(--award) 40%,transparent); background:color-mix(in srgb,var(--award) 8%,rgba(5,8,12,.7)); }
+.podium-top { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+.award-rank { display:grid; min-width:30px; height:30px; place-items:center; padding-inline:7px; border:1px solid color-mix(in srgb,var(--award) 26%,transparent); border-radius:9px; color:var(--award); background:color-mix(in srgb,var(--award) 7%,transparent); font-size:9px; font-weight:850; }
+.podium-top > strong { color:var(--award); font-size:38px; line-height:1; font-variant-numeric:tabular-nums; letter-spacing:-.045em; }
+.podium-team { display:flex; min-width:0; align-items:center; gap:12px; margin-top:17px; }
+.podium-team > span { min-width:0; }
+.podium-team b,.podium-team strong,.podium-team small { display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.podium-team b { color:var(--dim); font-size:9px; }
+.podium-team strong { margin-top:2px; font-size:18px; }
+.podium-team small { margin-top:3px; color:var(--muted); font-size:8px; }
+.award-podium p { min-height:38px; margin:16px 0 0; color:#d7dee6; font-size:11px; line-height:1.55; }
+.award-podium .award-risk { display:block; min-height:42px; margin-top:8px; padding-top:8px; border-top:1px solid var(--line); color:var(--muted); font-size:9px; line-height:1.5; }
+.award-podium em { display:block; margin-top:12px; color:var(--award); font-size:9px; font-style:normal; font-weight:800; }
+.award-rank-list { display:grid; grid-template-columns:1fr 1fr; gap:1px 18px; margin-top:10px; padding:0 12px; border:1px solid var(--line); border-radius:16px; background:var(--line); overflow:hidden; }
+.award-rank-list button { display:grid; min-width:0; min-height:66px; grid-template-columns:32px 28px minmax(120px,.7fr) minmax(180px,1fr) auto; align-items:center; gap:9px; padding:8px 4px; border:0; color:var(--text); text-align:left; background:var(--surface-3); cursor:pointer; }
+.award-rank-list button:hover { background:color-mix(in srgb,var(--award) 5%,var(--surface-3)); }
+.award-list-team { min-width:0; }
+.award-list-team b,.award-list-team small { display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.award-list-team b { font-size:12px; }
+.award-list-team small { margin-top:3px; color:var(--dim); font-size:8px; }
+.award-rank-list p { margin:0; overflow:hidden; color:var(--muted); font-size:9px; text-overflow:ellipsis; white-space:nowrap; }
+.award-rank-list button > strong { color:var(--award); font-size:20px; font-variant-numeric:tabular-nums; }
+.rookie-dpoy-warning { display:flex; align-items:center; gap:12px; margin-top:10px; padding:12px 14px; border:1px solid rgba(102,217,239,.16); border-radius:13px; background:rgba(102,217,239,.045); }
+.rookie-dpoy-warning strong { flex:none; color:var(--cyan); font-size:11px; }
+.rookie-dpoy-warning span { color:var(--muted); font-size:10px; line-height:1.5; }
 .season-control-panel { position:relative; z-index:2; margin-bottom:12px; padding:12px; border:1px solid var(--line-strong); border-radius:20px; background:rgba(12,16,22,.92); box-shadow:0 16px 48px rgba(0,0,0,.32); backdrop-filter:blur(22px) saturate(130%); }
 .season-current { display:grid; grid-template-columns:120px minmax(0,1fr) 120px; align-items:center; gap:10px; }
 .season-current > div { text-align:center; }
@@ -465,10 +512,13 @@ footer a { padding:10px 12px; border:1px solid var(--line); border-radius:10px; 
 .season-current small { margin-top:2px; color:var(--muted); font-size:10px; }
 .season-current button,.mobile-season-trigger { min-height:44px; border:1px solid var(--line); border-radius:12px; background:rgba(255,255,255,.035); font-size:11px; font-weight:750; cursor:pointer; }
 .season-current button:disabled { opacity:.32; cursor:not-allowed; }
-.season-grid { display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); gap:5px; margin-top:10px; }
-.season-grid button { min-height:38px; border:1px solid var(--line); border-radius:10px; color:var(--muted); background:#0a0e14; font-size:10px; font-weight:700; cursor:pointer; }
-.season-grid button:hover { color:var(--text); border-color:var(--line-strong); }
-.season-grid button.active { color:var(--lime-ink); border-color:var(--lime); background:var(--lime); }
+.season-era-groups { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; margin-top:10px; }
+.season-era-groups > section { min-width:0; padding:10px; border:1px solid var(--line); border-radius:14px; background:#090d13; }
+.season-era-groups > section > span { display:block; margin:0 0 7px 2px; color:var(--dim); font-size:9px; font-weight:800; }
+.season-era-groups > section > div { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:5px; }
+.season-era-groups button { min-height:38px; border:1px solid var(--line); border-radius:9px; color:var(--muted); background:rgba(255,255,255,.025); font-size:9px; font-weight:700; cursor:pointer; }
+.season-era-groups button:hover { color:var(--text); border-color:var(--line-strong); }
+.season-era-groups button.active { color:var(--lime-ink); border-color:var(--lime); background:var(--lime); }
 .mobile-season-trigger { display:none; width:100%; margin-top:8px; }
 .model-note { display:grid; grid-template-columns:auto minmax(0,1fr) auto; align-items:center; gap:12px; padding:13px 15px; border:1px solid rgba(102,217,239,.14); border-radius:15px; background:rgba(102,217,239,.035); }
 .model-note p { margin:0; font-size:11px; line-height:1.55; }
@@ -481,12 +531,14 @@ footer a { padding:10px 12px; border:1px solid var(--line); border-radius:10px; 
 .season-guide-head span { margin-top:4px; color:var(--lime); font-size:11px; font-weight:750; }
 .season-guide-head p { margin:0; font-size:11px; }
 .season-team-list { display:grid; gap:10px; }
-.season-team-card { overflow:hidden; border:1px solid var(--line); border-radius:22px; background:var(--surface); box-shadow:0 18px 48px rgba(0,0,0,.16); }
+.season-team-card { scroll-margin-top:92px; overflow:hidden; border:1px solid var(--line); border-radius:22px; background:var(--surface); box-shadow:0 18px 48px rgba(0,0,0,.16); }
+.season-team-card.jump-highlight { border-color:rgba(185,245,106,.52); box-shadow:0 18px 54px rgba(0,0,0,.24),0 0 0 4px rgba(185,245,106,.06); }
 .season-team-card > header { display:grid; grid-template-columns:38px 48px minmax(0,1fr) auto; align-items:center; gap:12px; padding:18px 20px; border-bottom:1px solid var(--line); background:linear-gradient(100deg,rgba(185,245,106,.045),transparent 54%); }
 .team-rank { display:grid; width:34px; height:34px; place-items:center; border:1px solid var(--line); border-radius:10px; color:var(--dim); font-size:11px; font-weight:850; }
 .team-rank.rank-1 { color:var(--lime-ink); border-color:var(--lime); background:var(--lime); }
 .season-team-card h3 { margin:0; font-size:23px; letter-spacing:-.025em; }
 .season-team-card header p { margin:4px 0 0; font-size:10px; }
+.modern-team-name { display:block; margin-top:2px; color:var(--amber); font-size:9px; font-weight:700; }
 .legacy-projection { min-width:150px; text-align:right; }
 .legacy-projection small,.legacy-projection strong,.legacy-projection span { display:block; }
 .legacy-projection small { color:var(--dim); font-size:8px; }
@@ -540,6 +592,10 @@ footer a { padding:10px 12px; border:1px solid var(--line); border-radius:10px; 
 .season-picker-sheet > div { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:6px; }
 .season-picker-sheet > div button { min-height:48px; border:1px solid var(--line); border-radius:11px; background:var(--surface-3); font-size:11px; font-weight:700; }
 .season-picker-sheet > div button.active { color:var(--lime-ink); border-color:var(--lime); background:var(--lime); }
+.season-picker-sheet > .season-sheet-groups { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
+.season-sheet-groups > section { min-width:0; padding:10px; border:1px solid var(--line); border-radius:14px; background:#0b1017; }
+.season-sheet-groups > section > span { display:block; margin:0 0 8px 2px; color:var(--dim); font-size:9px; font-weight:800; }
+.season-sheet-groups > section > div { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:6px; }
 
 /* 新版传奇择队：C 方案，以引援时间轴为主 */
 .season-team-card > header { grid-template-columns:38px 48px minmax(0,1fr) auto; }
@@ -547,6 +603,15 @@ footer a { padding:10px 12px; border:1px solid var(--line); border-radius:10px; 
 .team-card-status span,.team-card-status strong { display:block; }
 .team-card-status span { color:var(--lime); font-size:9px; font-weight:800; }
 .team-card-status strong { margin-top:4px; color:var(--muted); font-size:11px; }
+.award-pick-badges { display:flex; flex-wrap:wrap; gap:6px; padding:12px 20px 0; }
+.award-pick-badges > span { display:inline-flex; align-items:center; gap:7px; min-height:31px; padding:6px 9px; border-radius:9px; font-size:9px; font-weight:850; }
+.award-pick-badges > span b { font-size:11px; font-variant-numeric:tabular-nums; }
+.award-pick-badges .award-first-choice { color:#211b0c; background:var(--amber); box-shadow:0 8px 22px rgba(246,199,91,.15); }
+.award-pick-badges .award-top-ten { color:var(--muted); border:1px solid var(--line); background:rgba(255,255,255,.035); }
+.award-pick-badges .award-top-ten.award-mvp b { color:var(--amber); }
+.award-pick-badges .award-top-ten.award-dpoy b { color:var(--cyan); }
+.award-pick-badges .award-top-ten.award-fmvp b { color:var(--violet); }
+.award-pick-badges .award-top-ten.award-title b { color:var(--lime); }
 .recruit-answer { display:flex; align-items:center; justify-content:space-between; gap:18px; margin:14px 20px 0; padding:17px 18px; border:1px solid rgba(102,217,239,.2); border-radius:17px; background:linear-gradient(110deg,rgba(102,217,239,.09),rgba(179,156,255,.055)); }
 .recruit-answer span { color:var(--cyan); font-size:9px; font-weight:800; letter-spacing:.08em; }
 .recruit-answer h4 { margin:5px 0 0; font-size:22px; letter-spacing:-.035em; }
@@ -576,12 +641,26 @@ footer a { padding:10px 12px; border:1px solid var(--line); border-radius:10px; 
 .starter-five div strong { font-size:10px; }
 .starter-five div span { margin-top:6px; color:var(--dim); font-size:8px; }
 .starter-five div b { margin-top:2px; color:var(--lime); font-size:15px; }
+.starter-five-emphasis { margin:12px 20px 0; padding:18px; border-color:rgba(255,255,255,.13); background:#0c1118; }
+.starter-five-emphasis > header { margin-bottom:13px; }
+.starter-five-emphasis > header span { font-size:14px; }
+.starter-five-emphasis > header strong { font-size:10px; }
+.starter-five-emphasis > div { gap:8px; }
+.starter-five-emphasis > div > div { min-height:108px; padding:14px; border:1px solid rgba(255,255,255,.055); border-radius:13px; background:rgba(255,255,255,.035); }
+.starter-five-emphasis div strong { font-size:16px; line-height:1.25; white-space:normal; }
+.starter-five-emphasis div span { margin-top:12px; font-size:10px; }
+.starter-five-emphasis div b { margin-top:3px; font-size:28px; line-height:1; letter-spacing:-.04em; }
 .personal-awards > div { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:5px; }
 .personal-awards > div > div { min-width:0; padding:9px; border-radius:11px; background:rgba(255,255,255,.035); }
 .personal-awards div span,.personal-awards div strong,.personal-awards div small { display:block; }
 .personal-awards div span { min-height:24px; color:var(--dim); font-size:8px; line-height:1.4; }
 .personal-awards div strong { margin-top:3px; font-size:20px; font-variant-numeric:tabular-nums; }
 .personal-awards div small { margin-top:2px; color:var(--muted); font-size:8px; }
+.personal-awards-wide { margin:12px 20px 0; padding:16px; }
+.personal-awards-wide > header span { font-size:12px; }
+.personal-awards-wide > div > div { padding:12px; }
+.personal-awards-wide div span { min-height:0; font-size:9px; }
+.personal-awards-wide div strong { font-size:25px; }
 .recruit-candidates { margin-top:13px; padding:15px 20px 19px; border-top:1px solid var(--line); }
 .recruit-candidates > header { display:flex; align-items:end; justify-content:space-between; gap:14px; margin-bottom:10px; }
 .recruit-candidates > header span { color:var(--dim); font-size:8px; font-weight:800; }
@@ -727,6 +806,9 @@ footer a { padding:10px 12px; border:1px solid var(--line); border-radius:10px; 
   .legend-update-strip b { font-size:10px; }
   .legend-update-strip i { display:none; }
   .legend-update-strip span { padding:7px 9px; border-radius:9px; background:rgba(0,0,0,.16); font-size:10px; }
+  .legend-release-note { display:block; padding:13px; }
+  .legend-release-note strong,.legend-release-note span { display:block; }
+  .legend-release-note span { margin-top:5px; font-size:10px; }
   .hero-actions { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); width:100%; }
   .button { padding-inline:12px; font-size:13px; }
   .hero-proof { grid-template-columns:repeat(2,1fr); }
@@ -816,12 +898,28 @@ footer a { padding:10px 12px; border:1px solid var(--line); border-radius:10px; 
   .factor-panel header h3 { font-size:26px; }
   .season-points { grid-template-columns:1fr; padding:18px; }
   .season-points > div:last-child { grid-template-columns:1fr; }
+  .rookie-award-board { padding:14px; border-radius:19px; }
+  .rookie-award-board > header { display:block; }
+  .rookie-award-board > header h3 { font-size:24px; }
+  .rookie-award-board > header .source-badge { margin-top:10px; }
+  .award-board-tabs { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .award-board-tabs button { min-height:62px; }
+  .award-podium { grid-template-columns:1fr; }
+  .award-podium > button { padding:15px; }
+  .podium-top > strong { font-size:34px; }
+  .award-podium p,.award-podium .award-risk { min-height:0; }
+  .award-rank-list { grid-template-columns:1fr; padding:0 10px; }
+  .award-rank-list button { grid-template-columns:30px 26px minmax(0,1fr) auto; min-height:64px; }
+  .award-rank-list p { display:none; }
+  .rookie-dpoy-warning { display:block; }
+  .rookie-dpoy-warning strong,.rookie-dpoy-warning span { display:block; }
+  .rookie-dpoy-warning span { margin-top:5px; }
   .season-control-panel { padding:8px; border-radius:16px; }
   .season-current { grid-template-columns:76px minmax(0,1fr) 76px; gap:5px; }
   .season-current button { min-height:42px; padding-inline:4px; font-size:9px; }
   .season-current strong { font-size:20px; }
   .season-current small { display:none; }
-  .season-grid { display:none; }
+  .season-era-groups { display:none; }
   .mobile-season-trigger { display:block; }
   .model-note { grid-template-columns:1fr; gap:8px; }
   .model-note details span { position:static; display:block; width:auto; margin-top:8px; box-shadow:none; }
@@ -846,6 +944,7 @@ footer a { padding:10px 12px; border:1px solid var(--line); border-radius:10px; 
   .rotation-list > div { min-height:70px; }
   .team-verdict { grid-template-columns:1fr; padding:13px 14px 15px; }
   .team-card-status { min-width:0; grid-column:1/-1; padding-top:9px; border-top:1px solid var(--line); text-align:left; }
+  .award-pick-badges { padding:10px 14px 0; }
   .recruit-answer { display:block; margin:10px 14px 0; padding:14px; }
   .recruit-answer h4 { font-size:19px; line-height:1.3; }
   .recruit-answer em { display:inline-block; margin-top:10px; }
@@ -862,9 +961,18 @@ footer a { padding:10px 12px; border:1px solid var(--line); border-radius:10px; 
   .starter-five > div > div:last-child { grid-column:1/-1; }
   .starter-five div strong { font-size:12px; }
   .starter-five div b { font-size:18px; }
+  .starter-five-emphasis { margin:10px 14px 0; padding:13px; }
+  .starter-five-emphasis > header { display:block; }
+  .starter-five-emphasis > header strong { display:block; margin-top:4px; }
+  .starter-five-emphasis > div { grid-template-columns:1fr; }
+  .starter-five-emphasis > div > div,.starter-five-emphasis > div > div:last-child { display:grid; min-height:70px; grid-column:auto; grid-template-columns:minmax(0,1fr) 44px 44px; align-items:center; gap:8px; padding:11px 12px; }
+  .starter-five-emphasis div strong { font-size:16px; white-space:normal; }
+  .starter-five-emphasis div span { margin:0; font-size:10px; text-align:center; }
+  .starter-five-emphasis div b { margin:0; font-size:25px; text-align:right; }
   .personal-awards > div { grid-template-columns:repeat(2,minmax(0,1fr)); }
   .personal-awards div span { min-height:0; font-size:9px; }
   .personal-awards div strong { font-size:22px; }
+  .personal-awards-wide { margin:10px 14px 0; }
   .recruit-candidates { padding:14px; }
   .recruit-candidates > header { display:block; }
   .recruit-candidates > header > strong { display:block; margin-top:7px; }
@@ -875,6 +983,8 @@ footer a { padding:10px 12px; border:1px solid var(--line); border-radius:10px; 
   .season-picker-backdrop { padding:8px; }
   .season-picker-sheet { max-height:82dvh; overflow:auto; padding:14px; border-radius:21px; }
   .season-picker-sheet > div button { min-height:45px; }
+  .season-picker-sheet > .season-sheet-groups { grid-template-columns:1fr; }
+  .season-sheet-groups > section > div { grid-template-columns:repeat(3,minmax(0,1fr)); }
   .award-formula-list { grid-template-columns:1fr; }
   .award-formula-list article { min-height:0; padding:18px; }
   .award-formula-list article > strong { margin-top:28px; font-size:13px; }

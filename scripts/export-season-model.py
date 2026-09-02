@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build the 21-season, five-position Legend recommendation model.
+"""Build the 32-season, five-position Legend recommendation model.
 
 Fixed mechanics mirror the game code. Probabilities and career projections are
 clearly exported as estimates, because trades, drafts, aging and random game
@@ -14,7 +14,8 @@ from functools import lru_cache
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-SEASON_SOURCE = Path("/tmp/hupu-26826-15.js")
+SEASON_SOURCE = Path("/private/tmp/season-rosters-20260902.js")
+FULL_PLAYER_SOURCE = Path("/private/tmp/season-extra-20260902.js")
 GUIDE = ROOT / "app/data/guide-data.json"
 LEGEND = ROOT / "app/data/legend-data.json"
 OUTPUT = ROOT / "public/data/season-model.json"
@@ -25,6 +26,10 @@ POS_ORDER = ["PG", "SG", "SF", "PF", "C"]
 COMPATIBLE = {"PG": ["SG"], "SG": ["PG"], "SF": ["PF"], "PF": ["SF", "C"], "C": ["PF"]}
 EAST = {"ATL", "BOS", "BKN", "CHA", "CHI", "CLE", "DET", "IND", "MIA", "MIL", "NYK", "ORL", "PHI", "TOR", "WAS"}
 WEST = {"DAL", "DEN", "GSW", "HOU", "LAC", "LAL", "MEM", "MIN", "NOP", "OKC", "PHX", "POR", "SAC", "SAS", "UTA"}
+HISTORIC_TEAM_CODES = {
+    "NJN": "BKN", "SEA": "OKC", "VAN": "MEM", "WSB": "WAS",
+    "CHH": "CHA", "SDC": "LAC", "KCK": "SAC", "PHO": "PHX",
+}
 
 TEAM_POWER = {
     "offense": {"threePT": .2, "MID": .15, "FIN": .2, "PAS": .15, "HAN": .1, "DNK": .1, "ATH": .1},
@@ -68,9 +73,49 @@ def logistic(value: float) -> float:
     return 1 / (1 + math.exp(-clamp(-20, value, 20)))
 
 
-def season_data() -> dict:
-    source = SEASON_SOURCE.read_text(encoding="utf-8")
+def read_js_assignment(path: Path) -> dict:
+    source = path.read_text(encoding="utf-8")
     return json.loads(source[source.index("=") + 1:source.rfind(";")])
+
+
+def normalize_team_code(team: str) -> str:
+    return HISTORIC_TEAM_CODES.get(str(team or ""), str(team or ""))
+
+
+def normalize_player(player: dict, team: str | None = None) -> dict:
+    normalized = dict(player)
+    normalized["team"] = normalize_team_code(team or normalized.get("team", ""))
+    if not normalized.get("ovr"):
+        normalized["ovr"] = int(normalized.get("displayOverall", 0) or 0)
+    return normalized
+
+
+def season_data() -> dict:
+    """Merge current season rosters with the new 1984-95 historical extension."""
+    modern = read_js_assignment(SEASON_SOURCE)
+    full = read_js_assignment(FULL_PLAYER_SOURCE)
+    seasons: dict = {}
+    for season, bundle in modern["seasons"].items():
+        teams = [normalize_team_code(team) for team in bundle["teams"]]
+        rosters = {
+            normalize_team_code(team): [normalize_player(player, team) for player in bundle["rosters"][team]]
+            for team in bundle["teams"]
+        }
+        seasons[season] = {"season": season, "teams": teams, "rosters": rosters}
+    for season, bundle in full["seasons"].items():
+        if int(season[:4]) >= 1995:
+            continue
+        teams: list[str] = []
+        rosters: dict[str, list[dict]] = {}
+        for source_player in bundle.get("players", []):
+            player = normalize_player(source_player)
+            team = player["team"]
+            if team not in rosters:
+                teams.append(team)
+                rosters[team] = []
+            rosters[team].append(player)
+        seasons[season] = {"season": season, "teams": teams, "rosters": rosters}
+    return {"schema": "career-season-data-merged-v2", "seasons": seasons}
 
 
 def player_positions(value: str) -> list[str]:
@@ -82,6 +127,13 @@ def position_fit(value: str, target: str) -> int:
     if target in positions:
         return 2
     return 1 if any(pos in positions for pos in COMPATIBLE[target]) else 0
+
+
+def position_group(value: str) -> str:
+    primary = player_positions(value)[0]
+    if primary in ("PG", "SG"):
+        return "G"
+    return "C" if primary == "C" else "F"
 
 
 def attr(player: dict, key: str) -> float:
@@ -165,14 +217,15 @@ def af(value: float) -> float:
     return factor ** 1.5
 
 
-def user_stats(attrs: dict, position: str, lineup: dict) -> dict:
+def user_stats(attrs: dict, position: str, lineup: dict, overall: float = 97, starter: bool | None = None) -> dict:
     starters = list(lineup["starters"].values())
     starter_avg = sum(float(p.get("ovr", 75) or 75) for p in starters) / max(1, len(starters))
-    usage_bias = 1.06 * (97 / starter_avg) if lineup["isUserStarter"] else .82
+    is_starter = lineup["isUserStarter"] if starter is None else starter
+    usage_bias = 1.06 * (overall / starter_avg) if is_starter else .82
     minutes = clamp(26, 34 * math.sqrt(usage_bias), 40)
     minutes_factor = clamp(.75, minutes / 34, 1.15)
     off_avg = sum(attrs[key] for key in OFF_ATTRS[position]) / len(OFF_ATTRS[position])
-    usage_scale = 1 + (97 - 75) * .018
+    usage_scale = 1 + (overall - 75) * .018
     fga = 89 * BASE_USAGE[position] * usage_scale * usage_bias * (.1 + af(off_avg) * .9) * (minutes / 48)
     max_fga = (1 + af(off_avg) * 24) * clamp(.7, usage_scale, 1.5)
     fga = clamp(2, fga, max_fga)
@@ -210,12 +263,15 @@ def all_nba_score(stats: dict, win_pct: float, ovr: float = 97) -> float:
     return production + win_pct * 6 + max(0, ovr - 70) * .2 + stats["min"] * .08
 
 
-def dpoy_score(player: dict, team_rank: int, user: bool = False) -> float:
+def dpoy_score(player: dict, team_rank: int, user: bool = False, rookie: bool = False) -> float:
     raw = attr(player, "PDEF") * .5 + attr(player, "IDEF") * .5 + attr(player, "BLK") * .8 + float(player.get("ovr", 97) or 97) * .3
     team_factor = 1.2 if team_rank <= 10 else (1 if team_rank <= 20 else .8)
     minutes = float(player.get("min", 34) or 34)
     role_factor = 1 if minutes >= 28 else (.9 if minutes >= 20 else .75)
-    return raw * team_factor * role_factor
+    age = 22 if user else int(player.get("age", 25) or 25)
+    age_factor = 1 if age <= 34 else (.5 if age <= 36 else .25)
+    rookie_factor = .25 if rookie or player.get("rookie") else 1
+    return raw * team_factor * age_factor * role_factor * rookie_factor
 
 
 def final_score(stats: dict) -> float:
@@ -247,6 +303,8 @@ def historical_team_name(team: str, season: str, base: dict) -> str:
     if team == "CHA" and year <= 2001: return "夏洛特黄蜂"
     if team == "CHA" and 2004 <= year <= 2013: return "夏洛特山猫"
     if team == "NOP" and year <= 2012: return "新奥尔良黄蜂"
+    if team == "SAC" and year <= 1984: return "堪萨斯城国王"
+    if team == "LAC" and year <= 1983: return "圣迭戈快船"
     return base.get(team, team)
 
 
@@ -270,7 +328,7 @@ def main() -> None:
     data = season_data()
     guide = json.loads(GUIDE.read_text(encoding="utf-8"))
     legend = json.loads(LEGEND.read_text(encoding="utf-8"))
-    selected_seasons = [f"{year}-{str((year + 1) % 100).zfill(2)}" for year in range(1995, 2016)]
+    selected_seasons = [f"{year}-{str((year + 1) % 100).zfill(2)}" for year in range(1984, 2016)]
     user_profiles = {position: build_user_profile(position, legend) for position in POSITIONS}
     output_seasons: dict = {}
     available_seasons = sorted(data["seasons"], key=lambda value: int(value[:4]))
@@ -296,28 +354,40 @@ def main() -> None:
         }
         overall_order = sorted(teams, key=lambda team: -baseline_win[team])
         overall_rank = {team: index + 1 for index, team in enumerate(overall_order)}
-        max_gp = max(float(player.get("gp", 82) or 82) for roster in rosters.values() for player in roster)
+        max_gp = max(1, max(float(player.get("gp", 0) or 0) for roster in rosters.values() for player in roster))
         rival_rows = []
         rival_by_key = {}
         for code, roster in rosters.items():
             for player in roster:
-                games = float(player.get("gp", max_gp) or max_gp) / max_gp * 82
+                source_games = float(player.get("gp", 0) or 0)
+                games = source_games / max_gp * 82 if source_games else 82
                 stats = {key: float(player.get(key, 0) or 0) for key in ["pts", "reb", "ast", "stl", "blk"]}
-                stats["tov"] = float(player.get("tov", 2) or 2)
-                stats["min"] = float(player.get("min", 28) or 28)
+                if source_games <= 0 or sum(stats.values()) <= 0:
+                    player_position = player_positions(player.get("pos", "SF"))[0]
+                    if player_position not in POSITIONS:
+                        player_position = "SF"
+                    is_starter = player in baseline_lineups[code]["starters"].values()
+                    stats = user_stats(
+                        {key: attr(player, key) for key in ATTRS}, player_position,
+                        baseline_lineups[code], float(player.get("ovr", 70) or 70), is_starter,
+                    )
+                else:
+                    stats["tov"] = float(player.get("tov", 2) or 2)
+                    stats["min"] = float(player.get("min", 28) or 28)
+                defender = dict(player, min=stats["min"])
                 row = {
                     "player": player, "team": code,
-                    "group": "G" if player.get("pos") in ("PG", "SG") else ("C" if player.get("pos") == "C" else "F"),
+                    "group": position_group(player.get("pos", "SF")),
                     "mvp": mvp_score(stats, baseline_win[code], float(player.get("ovr", 70) or 70), games),
                     "allnba": all_nba_score(stats, baseline_win[code], float(player.get("ovr", 70) or 70)),
-                    "dpoy": dpoy_score(player, overall_rank[code]), "final": final_score(stats),
+                    "dpoy": dpoy_score(defender, overall_rank[code]), "final": final_score(stats),
                     "conference": "E" if code in EAST else "W",
                 }
                 rival_rows.append(row)
                 rival_by_key[player_key(player)] = row
         context = {
             "season": season, "teams": teams, "rosters": rosters,
-            "baselinePowers": baseline_powers, "baselineWin": baseline_win,
+            "baselineLineups": baseline_lineups, "baselinePowers": baseline_powers, "baselineWin": baseline_win,
             "overallRank": overall_rank, "rivals": rival_rows, "rivalByKey": rival_by_key,
         }
         context_cache[season] = context
@@ -331,9 +401,15 @@ def main() -> None:
         selected = min(choices, key=lambda season: (abs(int(season[:4]) - target_year), int(season[:4]) < target_year))
         return build_context(selected), True
 
-    def evaluate_team(context: dict, team: str, position: str, candidate: dict | None = None) -> dict:
+    def evaluate_team(
+        context: dict,
+        team: str,
+        position: str,
+        candidate: dict | None = None,
+        user_is_rookie: bool = False,
+    ) -> dict:
         candidate_id = player_key(candidate) if candidate else ""
-        cache_key = (context["season"], team, position, candidate_id)
+        cache_key = (context["season"], team, position, candidate_id, user_is_rookie)
         if cache_key in evaluation_cache:
             return evaluation_cache[cache_key]
         profile = user_profiles[position]
@@ -377,11 +453,11 @@ def main() -> None:
         finals_p = sum(series_probability(game_probability(power, baseline_powers[opp])) for opp in finals_opponents) / max(1, len(finals_opponents))
         title_prob = clamp(0, playoff_prob * first_p * second_p * conf_final_p * finals_p, .92)
 
-        stats = user_stats(attrs, position, lineup)
+        stats = user_stats(attrs, position, lineup, user_ovr)
         user_mvp = mvp_score(stats, win_pct, user_ovr)
         best_mvp = max(context["rivals"], key=lambda row: row["mvp"])
         mvp_prob = logistic((user_mvp - best_mvp["mvp"]) / 3.2)
-        group = "G" if position in ("PG", "SG") else ("C" if position == "C" else "F")
+        group = position_group(position)
         group_rows = sorted([row for row in context["rivals"] if row["group"] == group], key=lambda row: -row["allnba"])
         slot = 6 if group != "C" else 3
         allnba_cutoff = group_rows[min(slot - 1, len(group_rows) - 1)]["allnba"]
@@ -393,7 +469,7 @@ def main() -> None:
         allstar_prob = logistic((user_allnba - allstar_cutoff) / 2.5)
         team_rank = sorted(teams, key=lambda code: -(win_pct if code == team else baseline_win[code])).index(team) + 1
         user_defender = {"ovr": user_ovr, "min": stats["min"], **attrs}
-        user_dpoy = dpoy_score(user_defender, team_rank, True)
+        user_dpoy = dpoy_score(user_defender, team_rank, user=True, rookie=user_is_rookie)
         best_dpoy = max(context["rivals"], key=lambda row: row["dpoy"])
         dpoy_prob = logistic((user_dpoy - best_dpoy["dpoy"]) / 5.0)
         teammate_rows = [row for row in context["rivals"] if row["team"] == team]
@@ -406,10 +482,13 @@ def main() -> None:
         result = {
             "lineup": lineup, "power": power, "seed": seed, "winPctRaw": win_pct,
             "playoffProb": playoff_prob, "titleProb": title_prob,
-            "mvpProb": mvp_prob, "fmvpProb": fmvp_share, "dpoyProb": dpoy_prob,
+            "mvpProb": mvp_prob, "fmvpProb": fmvp_prob, "fmvpShare": fmvp_share, "dpoyProb": dpoy_prob,
             "allNbaProb": allnba_prob, "allStarProb": allstar_prob,
             "mvpScore": user_mvp, "mvpRival": best_mvp["player"].get("cname") or best_mvp["player"].get("name"),
-            "mvpGap": user_mvp - best_mvp["mvp"], "annual": annual, "outgoing": outgoing,
+            "mvpGap": user_mvp - best_mvp["mvp"],
+            "dpoyScore": user_dpoy, "dpoyRival": best_dpoy["player"].get("cname") or best_dpoy["player"].get("name"),
+            "fmvpRival": best_final["player"].get("cname") or best_final["player"].get("name"),
+            "annual": annual, "outgoing": outgoing,
         }
         evaluation_cache[cache_key] = result
         return result
@@ -497,20 +576,35 @@ def main() -> None:
         for position in POSITIONS:
             position_results = []
             for team in teams:
-                current = evaluate_team(context, team, position)
+                rookie_current = evaluate_team(context, team, position, user_is_rookie=True)
+                career_current = evaluate_team(context, team, position, user_is_rookie=False)
                 profile = user_profiles[position]
-                career_mid = min(1260, 72 + current["annual"] * 18)
+                career_mid = min(1260, 72 + career_current["annual"] * 18)
                 plan = recruitment_plan(season, team, position)
                 rank_score = min(1260, career_mid + max(0, plan["scoreGain"]))
-                lineup_rows = [compact_player(current["lineup"]["starters"][slot_name], f"首发{slot_name}", position) for slot_name in POS_ORDER if slot_name in current["lineup"]["starters"]]
+                source_lineup = context["baselineLineups"][team]
+                lineup_rows = [compact_player(source_lineup["starters"][slot_name], f"首发{slot_name}", position) for slot_name in POS_ORDER if slot_name in source_lineup["starters"]]
+                team_name = historical_team_name(team, season, guide["teamNames"])
                 position_results.append({
-                    "team": team, "teamName": historical_team_name(team, season, guide["teamNames"]),
-                    "rank": 0, "tags": [], "isUserStarter": current["lineup"]["isUserStarter"],
+                    "season": season, "team": team, "teamName": team_name, "modernTeamName": guide["teamNames"].get(team, team_name),
+                    "rank": 0, "tags": [], "awardRanks": {}, "isUserStarter": rookie_current["lineup"]["isUserStarter"],
                     "modelOvr": profile["ovr"], "boostedAttr": profile["boostedAttr"],
-                    "mvpPct": round(current["mvpProb"] * 100), "fmvpPct": round(current["fmvpProb"] * 100),
-                    "dpoyPct": round(current["dpoyProb"] * 100), "allNbaPct": round(current["allNbaProb"] * 100),
-                    "mvpDifficulty": difficulty(current["mvpProb"]), "fmvpDifficulty": difficulty(current["fmvpProb"]),
-                    "dpoyDifficulty": difficulty(current["dpoyProb"]),
+                    "mvpPct": round(rookie_current["mvpProb"] * 100), "fmvpPct": round(rookie_current["fmvpProb"] * 100),
+                    "dpoyPct": round(rookie_current["dpoyProb"] * 100), "titlePct": round(rookie_current["titleProb"] * 100),
+                    "allNbaPct": round(rookie_current["allNbaProb"] * 100),
+                    "mvpDifficulty": difficulty(rookie_current["mvpProb"]), "fmvpDifficulty": difficulty(rookie_current["fmvpProb"]),
+                    "dpoyDifficulty": difficulty(rookie_current["dpoyProb"]),
+                    "modelMetrics": {
+                        "mvp": round(rookie_current["mvpProb"] * 100, 6),
+                        "dpoy": round(rookie_current["dpoyProb"] * 100, 6),
+                        "fmvp": round(rookie_current["fmvpProb"] * 100, 6),
+                        "title": round(rookie_current["titleProb"] * 100, 6),
+                        "fmvpShare": round(rookie_current["fmvpShare"] * 100, 2),
+                        "mvpScore": round(rookie_current["mvpScore"], 2),
+                        "dpoyScore": round(rookie_current["dpoyScore"], 2),
+                    },
+                    "mvpRival": rookie_current["mvpRival"], "dpoyRival": rookie_current["dpoyRival"],
+                    "fmvpRival": rookie_current["fmvpRival"],
                     "lineup": lineup_rows, "recruitment": plan, "rankScore": round(rank_score, 2),
                 })
             position_results.sort(key=lambda row: (-row["rankScore"], -row["mvpPct"], -row["fmvpPct"], -row["dpoyPct"]))
@@ -525,6 +619,43 @@ def main() -> None:
         }
         print(f"已完成 {season}")
 
+    award_labels = {"mvp": "MVP", "dpoy": "DPOY", "fmvp": "FMVP", "title": "总冠军"}
+    award_leaderboards: dict = {}
+    for position in POSITIONS:
+        award_leaderboards[position] = {}
+        for award_key, award_label in award_labels.items():
+            pool = [row for season in selected_seasons for row in output_seasons[season]["positions"][position]]
+            tie_metric = {"mvp": "mvpScore", "dpoy": "dpoyScore", "fmvp": "fmvpShare", "title": "title"}[award_key]
+            pool.sort(key=lambda row: (
+                -row["modelMetrics"][award_key], -row["modelMetrics"][tie_metric],
+                -row["titlePct"], row["season"] if "season" in row else "",
+            ))
+            leaders = []
+            for index, row in enumerate(pool[:10]):
+                rank = index + 1
+                row["awardRanks"][award_key] = rank
+                probability = row["modelMetrics"][award_key]
+                if award_key == "mvp":
+                    reason = f"MVP竞争分 {row['modelMetrics']['mvpScore']:.1f}，球队战绩与个人产量结合最好"
+                    risk = f"主要对手：{row['mvpRival']}；实力接近时仍有评选波动"
+                elif award_key == "dpoy":
+                    reason = f"防守竞争分 {row['modelMetrics']['dpoyScore']:.1f}，球队防守排名系数相对有利"
+                    risk = "新秀季DPOY得分固定乘 0.25，首年获奖仍接近不可能"
+                elif award_key == "fmvp":
+                    reason = f"夺冠 {row['titlePct']}% × 队内FMVP份额 {row['modelMetrics']['fmvpShare']:.0f}%"
+                    risk = f"队内主要竞争者：{row['fmvpRival']}；本概率已计入进总决赛与夺冠"
+                else:
+                    reason = "替换同位置首发后，四轮季后赛的整体通关率最高"
+                    risk = "总冠军仍需连过四轮系列赛，单局随机性无法完全消除"
+                leaders.append({
+                    "rank": rank, "award": award_label, "season": row["season"],
+                    "team": row["team"], "teamName": row["teamName"],
+                    "modernTeamName": row["modernTeamName"],
+                    "probability": round(probability), "probabilityRaw": probability,
+                    "underOne": 0 < probability < 1, "reason": reason, "risk": risk,
+                })
+            award_leaderboards[position][award_key] = leaders
+
     SEASON_OUTPUT.mkdir(parents=True, exist_ok=True)
     season_files = {}
     for season, season_payload in output_seasons.items():
@@ -536,19 +667,24 @@ def main() -> None:
 
     payload = {
         "meta": {
-            "source": "2026-08-30 游戏赛季阵容、特训与引援公式", "extractedAt": "2026-08-30",
-            "seasonCount": 21, "modelOvrByPosition": {position: profile["ovr"] for position, profile in user_profiles.items()},
+            "source": "2026-09-02 游戏赛季阵容、特训、奖项与引援公式", "extractedAt": "2026-09-02",
+            "seasonCount": len(selected_seasons),
+            "cardCount": sum(len(output_seasons[season]["teams"]) * len(POSITIONS) for season in selected_seasons),
+            "modelOvrByPosition": {position: profile["ovr"] for position, profile in user_profiles.items()},
             "theoreticalMax": 1260, "recruitmentNodes": recruitment_nodes,
             "notes": [
                 "自建球员使用本站无冲突最优组合，并按游戏规则把最低属性固定加20、最高99。",
+                "可开局赛季为1984-85至2015-16；早期联盟只显示当季实际存在的23、25或27支球队。",
+                "新秀季DPOY沿用游戏固定0.25系数；FMVP显示已计入夺冠概率的整季绝对概率。",
                 "管理层引援候选按对应联盟赛季OVR前六生成，当前球队球员会被排除并按身份去重。",
                 "引援发生前还会经历随机交易、选秀、成长与伤病，因此未来候选与概率属于模型估算。",
             ],
         },
-        "seasons": selected_seasons, "userProfiles": user_profiles, "seasonFiles": season_files,
+        "seasons": selected_seasons, "userProfiles": user_profiles,
+        "awardLeaderboards": award_leaderboards, "seasonFiles": season_files,
     }
     OUTPUT.write_text(json.dumps(payload, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
-    print(json.dumps({"output": str(OUTPUT), "seasons": len(selected_seasons), "cards": len(selected_seasons) * 5 * 30}, ensure_ascii=False))
+    print(json.dumps({"output": str(OUTPUT), "seasons": len(selected_seasons), "cards": payload["meta"]["cardCount"]}, ensure_ascii=False))
 
 
 if __name__ == "__main__":

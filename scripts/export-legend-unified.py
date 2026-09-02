@@ -186,7 +186,7 @@ def main() -> None:
     SUMMARY.write_text(json.dumps({"meta": {
         "extractedAt": "2026-08-28", "teamCount": len(teams), "playerCount": len(pool),
         "verifiedBoards": 65, "verifiedTop20Rows": 1300, "exportedTop40Rows": 2600,
-        "seasonCount": 21,
+        "seasonCount": 32,
     }}, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
     print(json.dumps({"teams": len(teams), "players": len(pool), "boards": 65, "rows": 2600}, ensure_ascii=False))
 
